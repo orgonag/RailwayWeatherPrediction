@@ -7,13 +7,14 @@ import { download } from './Observations';
 type SavedAssessment=ModelAssessment&{evidence:EvidenceSnapshot};
 export default function AIBrief({context}:{context:Record<string,unknown>}) {
   const evidence=useMemo(()=>createEvidenceSnapshot(context),[context]);
-  const evidenceJson=JSON.stringify(evidence);
+  // A clock tick alone does not change the observations being assessed.
+  const evidenceContent=JSON.stringify({...context,generatedAt:null});
   const prompt=useMemo(()=>buildEvidence(context),[context]);
   const [copied,setCopied]=useState(false),[result,setResult]=useState<SavedAssessment|null>(null);
   const [error,setError]=useState(''),[busy,setBusy]=useState(false),[consent,setConsent]=useState(false);
   const endpoint=import.meta.env.VITE_AI_ENDPOINT as string|undefined;
-  useEffect(()=>setConsent(false),[evidenceJson]);
-  const resultIsCurrent=!result||JSON.stringify(result.evidence)===evidenceJson;
+  useEffect(()=>setConsent(false),[evidenceContent]);
+  const resultIsCurrent=!result||JSON.stringify({...result.evidence.context,generatedAt:null})===evidenceContent;
   async function copy() {
     try{await navigator.clipboard.writeText(prompt);setCopied(true);setTimeout(()=>setCopied(false),2500);}
     catch{download('rwp-ai-prompt.txt',prompt,'text/plain');}

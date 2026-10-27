@@ -18,6 +18,8 @@ No API key is required to use the map, linear weather, scenarios or exports. Aut
 
 ## What the model reasons about
 
+Raw hourly timestamps are explicitly labelled UTC; America/Regina is only the display timezone. Hourly accumulation/gust intervals are distinguished from current-provider intervals.
+
 The inspected package includes available hourly forecasts for the selected subdivision, sample identities, gauge readings and acquisition/observation times, explicit scenarios and original report links with separate event/publication timestamps. It considers individual changes and plausible combinations, including snow reserves → warming/rain → runoff/gauge response, with social observations at their actual place in the timeline.
 
 There is no automatic social feed or model web-browsing tool. The model sees only supplied evidence. Multi-year seasonal baselines, measured basin-wide SWE and a trained statistical model are currently absent. It must say so instead of inventing normal values, anomaly percentiles, hydraulic connectivity or fixed travel times. It gives evidence-supported review priorities and labelled hypotheses, not a calibrated failure probability.
