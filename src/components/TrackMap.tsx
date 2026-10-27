@@ -13,7 +13,7 @@ export default function TrackMap(props: Props) {
     if(!container.current) return;
     const m=L.map(container.current,{zoomControl:false,scrollWheelZoom:true}).setView([52,-106],7);map.current=m;
     L.control.zoom({position:'bottomleft'}).addTo(m);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors · © <a href="https://carto.com/attributions">CARTO</a>',maxZoom:19}).addTo(m);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',maxZoom:19}).addTo(m);
     layers.current=L.layerGroup().addTo(m);
     const resize=new ResizeObserver(()=>m.invalidateSize());resize.observe(container.current);
     return ()=>{resize.disconnect();m.remove();map.current=null;};

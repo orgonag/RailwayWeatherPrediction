@@ -11,4 +11,5 @@ test-results/
 .DS_Store
 __pycache__/
 public/docs/
+public/third-party-licenses.txt
 worker/wrangler.local.jsonc
