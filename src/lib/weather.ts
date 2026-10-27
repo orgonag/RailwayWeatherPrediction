@@ -1,16 +1,20 @@
 import type { ForecastPoint, WeatherSummary } from '../types';
 
 export function utcTime(time: string): number {
+  if(typeof time!=='string')return NaN;
   return Date.parse(/(Z|[+-]\d\d:\d\d)$/.test(time) ? time : `${time}Z`);
 }
 export function forecastIndex(point: ForecastPoint | undefined, at: Date): number {
   const hour = Math.floor(at.getTime() / 3_600_000) * 3_600_000;
-  return point?.hourly.time.findIndex(t => utcTime(t) === hour) ?? -1;
+  return Array.isArray(point?.hourly?.time) ? point.hourly.time.findIndex(t => utcTime(t) === hour) : -1;
 }
 export function summarizeWeather(point: ForecastPoint | undefined, now: Date): WeatherSummary {
   const start = forecastIndex(point, now);
   const hours = point?.hourly;
-  const window = (values?: (number | null)[]) => start < 0 ? [] : (values?.slice(start, start + 24) ?? []);
+  const times=hours?.time?.slice(start,start+24)??[];
+  const first=times[0]?utcTime(times[0]):NaN;
+  const hourlyWindow=start>=0&&times.length===24&&times.every((t,i)=>utcTime(t)===first+i*3600000);
+  const window = (values?: (number | null)[]) => start < 0 || !hourlyWindow || !Array.isArray(values) || values.length!==hours?.time?.length ? [] : values.slice(start, start + 24);
   const valid = (values: (number | null)[]) => values.filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
   const complete = (values: (number | null)[]) => values.length === 24 && valid(values).length === 24;
   const rain = window(hours?.precipitation), liquidRain = window(hours?.rain), temps = window(hours?.temperature_2m);
@@ -25,7 +29,7 @@ export function summarizeWeather(point: ForecastPoint | undefined, now: Date): W
     maxTempC: complete(temps) ? Math.max(...temps as number[]) : null,
     maxWindKmh: complete(winds) ? Math.max(...winds as number[]) : null,
     maxGustKmh: complete(gusts) ? Math.max(...gusts as number[]) : null,
-    snowDepthM: start >= 0 && Number.isFinite(hours?.snow_depth[start]) ? hours!.snow_depth[start] : null,
+    snowDepthM: start >= 0 && Number.isFinite(hours?.snow_depth?.[start]) ? hours!.snow_depth[start] : null,
     validHours: valid(rain).length,
     stale: !Number.isFinite(fetched) || now.getTime()-fetched > 6*3_600_000 || fetched > now.getTime()+3_600_000,
   };

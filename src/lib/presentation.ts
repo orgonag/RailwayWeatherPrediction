@@ -5,7 +5,7 @@ export const timeLabel = (value: string | null | undefined) => value ? new Date(
 export function metricValue(point: ForecastPoint | undefined, metric: Metric, now: Date, offset=0): number | null {
   const at=new Date(now.getTime()+offset*3600000),i=forecastIndex(point,at);
   if (!point || i < 0) return null;
-  const v=metric==='temperature'?point.hourly.temperature_2m[i]:metric==='rain'?point.hourly.precipitation[i]:point.hourly.wind_gusts_10m[i];
+  const v=metric==='temperature'?point.hourly?.temperature_2m?.[i]:metric==='rain'?point.hourly?.precipitation?.[i]:point.hourly?.wind_gusts_10m?.[i];
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
 export function metricColor(value: number | null, metric: Metric): string {

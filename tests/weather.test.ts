@@ -33,3 +33,13 @@ it('marks data older than six hours stale and refuses past forecast windows', ()
   expect(summarizeWeather(point,new Date('2026-10-27T19:00Z')).stale).toBe(true);
   expect(summarizeWeather(point,new Date('2026-11-01T00:00Z')).rain24Mm).toBeNull();
 });
+it('refuses a gapped 24-row window that spans 46 hours',()=>{
+  const gapped=structuredClone(point);
+  gapped.hourly.time=Array.from({length:48},(_,i)=>new Date(Date.parse('2026-10-27T00:00Z')+i*7200000).toISOString());
+  const s=summarizeWeather(gapped,now);
+  expect(s.rain24Mm).toBeNull();expect(s.positiveDegreeDays).toBeNull();expect(s.validHours).toBe(0);
+});
+it('keeps a missing snow-depth array unavailable without crashing the page',()=>{
+  const malformed=structuredClone(point);delete (malformed.hourly as Partial<ForecastPoint['hourly']>).snow_depth;
+  expect(summarizeWeather(malformed,now).snowDepthM).toBeNull();
+});

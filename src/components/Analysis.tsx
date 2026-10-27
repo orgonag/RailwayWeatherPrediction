@@ -5,9 +5,9 @@ import { runoffScenario } from '../lib/analysis';
 import { fmt, timeLabel } from '../lib/presentation';
 import { utcTime } from '../lib/weather';
 
-interface Props {summary:WeatherSummary;gauges:GaugeSnapshot|null;onScenario:(input:ScenarioInput,result:ScenarioResult|null)=>void}
-export default function Analysis({summary,gauges,onScenario}:Props) {
-  const [input,setInput]=useState<ScenarioInput>({areaKm2:1,rainMm:10,snowWaterEquivalentMm:0,positiveDegreeDays:2,meltFactor:3,runoffCoefficient:.5});
+interface Props {summary:WeatherSummary;gauges:GaugeSnapshot|null;initialInput?:ScenarioInput;onScenario:(input:ScenarioInput,result:ScenarioResult|null)=>void}
+export default function Analysis({summary,gauges,initialInput,onScenario}:Props) {
+  const [input,setInput]=useState<ScenarioInput>(initialInput??{areaKm2:1,rainMm:10,snowWaterEquivalentMm:0,positiveDegreeDays:2,meltFactor:3,runoffCoefficient:.5});
   let result:ScenarioResult|null=null,error='';try{result=runoffScenario(input);}catch(e){error=(e as Error).message;}
   useEffect(()=>onScenario(input,result),[input,onScenario]);
   const fields:[keyof ScenarioInput,string,string,number][]=[['areaKm2','Drainage area','km²',.1],['rainMm','Liquid precipitation','mm / 24h',.1],['snowWaterEquivalentMm','Available snow water equivalent','mm SWE',1],['positiveDegreeDays','Positive degree-days','°C-days / 24h',.1],['meltFactor','Degree-day melt factor','mm / °C-day',.1],['runoffCoefficient','Runoff coefficient','0–1',.05]];

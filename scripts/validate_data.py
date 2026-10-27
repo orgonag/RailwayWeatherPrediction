@@ -25,6 +25,8 @@ require(ids <= weather['points'].keys(),'Weather snapshot missing sample records
 for sample in ids:
     point=weather['points'][sample];time(point['fetchedAt']);hours=point['hourly'];times=hours['time']
     require(len(times)>0 and times==sorted(set(times)),f'Unordered weather times: {sample}')
+    parsed=[time(t) for t in times]
+    require(all((b-a).total_seconds()==3600 for a,b in zip(parsed,parsed[1:])),f'Non-hourly weather timeline: {sample}')
     for key in ['temperature_2m','precipitation','rain','snow_depth','wind_speed_10m','wind_gusts_10m']:
         require(len(hours[key])==len(times),f'Weather array length mismatch: {sample}/{key}')
         require(all(numeric(v) for v in hours[key]),f'Nonfinite weather value: {sample}/{key}')
