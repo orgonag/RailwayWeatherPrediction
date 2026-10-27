@@ -1,0 +1,73 @@
+{
+  "research_date": "2026-10-27",
+  "scope": "Bounded geographic screening of five previously identified report cues, using a gross drainage basin at the Armley gauge. Not a validated railway flood forecast.",
+  "sources": [
+    {
+      "name": "ECCC National hydrometric network basin polygons",
+      "catalogue": "https://open.canada.ca/data/en/dataset/0c121878-ac23-46f5-95df-eb9960753375",
+      "download": "https://collaboration.cmc.ec.gc.ca/cmc/hydrometrics/www/HydrometricNetworkBasinPolygons/geojson/MDA_ADP_05.zip",
+      "selected_station": "05KB003",
+      "boundary_date": "2024-06-01",
+      "licence": "Open Government Licence – Canada"
+    },
+    {
+      "name": "Saskatchewan rural municipality boundaries",
+      "service": "https://gis.saskatchewan.ca/arcgis/rest/services/Administrative/MapServer/4",
+      "query": "RMNO_NUMER IN (456,457); outSR 4326; GeoJSON",
+      "licence_note": "Source copyright and reuse terms remain applicable."
+    },
+    {
+      "name": "Local OSM map extracts",
+      "api": "https://api.openstreetmap.org/api/0.6/map",
+      "bounding_boxes": [
+        "-104.07,53.12,-104.00,53.18",
+        "-104.18,53.04,-103.98,53.12",
+        "-104.20,53.12,-104.05,53.21",
+        "-104.05,53.16,-103.98,53.22"
+      ],
+      "licence": "© OpenStreetMap contributors; ODbL; https://www.openstreetmap.org/copyright"
+    },
+    {
+      "name": "CANTRE public NRWN snapshot",
+      "manifest": "https://orgonag.github.io/cantre-research/data/manifest.json",
+      "dataset_version": "nrwn-national-c400fd8d+cantre.0.1.1",
+      "limitation": "Derived bridge mileages are estimates, not railway-posted bridge identifiers; source geometry is historical."
+    },
+    {
+      "name": "CPKC Saskatchewan April 2025 bulletin",
+      "url": "https://tcrc510.net/wp-content/uploads/2025/05/Saskatchewan-April-2025.pdf#page=34",
+      "correction": "Page 34 was rendered locally and visually inspected. It does NOT support the earlier claimed bridge mileages 116.7, 118.0, 119.1. Those claims are retracted."
+    },
+    {
+      "name": "WSA High Flow Advisory",
+      "url": "https://wsask.ca/high-flow-advisory/",
+      "page_date": "2026-04-28",
+      "finding": "Original advisory page retrieved: explicitly names Melfort and Tisdale; warns of accelerating melt and flows higher than forecast. Regional context, not bridge-specific prediction."
+    }
+  ],
+  "experimental_model_check": {
+    "source": "https://mghydro.com/watersheds/help.html",
+    "model": "MERIT-Hydro via Global Watersheds, precision=high",
+    "armley_gauge_model_area_km2": 4560,
+    "eccc_gauge_polygon_area_km2": 4925.45,
+    "result": "Not adopted as definitive bridge catchments. A tributary request returned a basin including the main river but excluding the input point; snapping/flow-path identity needs resolution."
+  },
+  "key_limits": [
+    "A gross drainage boundary does not imply every area contributes runoff during a particular event.",
+    "The gauge is downstream of mapped railway openings; its catchment is not identical to theirs.",
+    "Original social-media publication timestamps were not retrieved; dates are contemporary news publication times.",
+    "First railway threat is recalled as May 4–5 and major damage by May 6; exact times and independent corroboration are absent.",
+    "Four public bridge geometries were found; identification of the user-described three structures remains unresolved."
+  ],
+  "user_event_benchmark": {
+    "source": "User recollection supplied in this conversation on 2026-10-27",
+    "threat_first_observed_date_range": [
+      "2026-05-04",
+      "2026-05-05"
+    ],
+    "major_damage_by_date": "2026-05-06",
+    "user_description": "railway threatened May 4/5; wiped out at those bridges by May 6",
+    "precision": "approximate dates; time of day and exact assets unverified",
+    "independently_verified": false
+  }
+}

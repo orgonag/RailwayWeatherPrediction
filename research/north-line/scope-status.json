@@ -1,0 +1,29 @@
+{
+  "research_date": "2026-10-27",
+  "user_scope_request": "Sutherland, Wynyard and branches, extended to Wilkie and Hardisty by explicit user confirmation.",
+  "working_scope": "Hardisty\u2013Wilkie\u2013Saskatoon/Sutherland\u2013Wynyard\u2013Bredenbury and connected branch inventory; Alberta included.",
+  "status": "Public application implementation in progress; current source and active-limit gaps retained.",
+  "scope_principles": [
+    "Rail coverage follows specified subdivisions and branch operating limits.",
+    "Environmental and social watch area follows upstream catchments feeding covered crossings and can extend far beyond track vicinity.",
+    "Railway diamonds do not imply a junction or branch connection.",
+    "Historical track/structure geometry does not establish current operating status or complete culvert inventory."
+  ],
+  "sources": {
+    "TSB_north_main_line": "https://bst-tsb.gc.ca/eng/rapports-reports/rail/2019/r19w0320/r19w0320.html",
+    "provincial_network_map": "https://publications.saskatchewan.ca/api/v1/products/82997/formats/95400/download",
+    "provincial_map_date": "April 2024",
+    "provincial_geometry_item": "https://www.arcgis.com/home/item.html?id=1ee543a558bf4867b93966f95f7862fb",
+    "provincial_geometry_attribute_vintage": "2024_2025",
+    "provincial_item_modified": "2026-10-18; this is not proof of 2026 geometry currency",
+    "cantre_manifest": "https://orgonag.github.io/cantre-research/data/manifest.json",
+    "cantre_version": "nrwn-national-c400fd8d+cantre.0.1.1",
+    "cantre_repository": "https://github.com/orgonag/cantre-research"
+  },
+  "data_gaps": [
+    "Current branch operator and endpoint confirmation.",
+    "Complete bridge/culvert asset locations and identifiers.",
+    "Asset-specific upstream drainage delineations and hydraulic connectivity.",
+    "Reliable real-time access to original social observations, with timestamps and location confidence."
+  ]
+}

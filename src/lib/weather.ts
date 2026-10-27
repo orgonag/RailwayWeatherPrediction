@@ -1,0 +1,32 @@
+import type { ForecastPoint, WeatherSummary } from '../types';
+
+export function utcTime(time: string): number {
+  return Date.parse(/(Z|[+-]\d\d:\d\d)$/.test(time) ? time : `${time}Z`);
+}
+export function forecastIndex(point: ForecastPoint | undefined, at: Date): number {
+  const hour = Math.floor(at.getTime() / 3_600_000) * 3_600_000;
+  return point?.hourly.time.findIndex(t => utcTime(t) === hour) ?? -1;
+}
+export function summarizeWeather(point: ForecastPoint | undefined, now: Date): WeatherSummary {
+  const start = forecastIndex(point, now);
+  const hours = point?.hourly;
+  const window = (values?: (number | null)[]) => start < 0 ? [] : (values?.slice(start, start + 24) ?? []);
+  const valid = (values: (number | null)[]) => values.filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+  const complete = (values: (number | null)[]) => values.length === 24 && valid(values).length === 24;
+  const rain = window(hours?.precipitation), liquidRain = window(hours?.rain), temps = window(hours?.temperature_2m);
+  const winds = window(hours?.wind_speed_10m), gusts = window(hours?.wind_gusts_10m);
+  const fetched = point ? utcTime(point.fetchedAt) : NaN;
+  // Six hours is a display freshness rule, not a forecast skill threshold.
+  return {
+    rain24Mm: complete(rain) ? (rain as number[]).reduce((a,b)=>a+b,0) : null,
+    liquidRain24Mm: complete(liquidRain) ? (liquidRain as number[]).reduce((a,b)=>a+b,0) : null,
+    positiveDegreeDays: complete(temps) ? (temps as number[]).reduce((a,b)=>a+Math.max(0,b),0)/24 : null,
+    minTempC: complete(temps) ? Math.min(...temps as number[]) : null,
+    maxTempC: complete(temps) ? Math.max(...temps as number[]) : null,
+    maxWindKmh: complete(winds) ? Math.max(...winds as number[]) : null,
+    maxGustKmh: complete(gusts) ? Math.max(...gusts as number[]) : null,
+    snowDepthM: start >= 0 && Number.isFinite(hours?.snow_depth[start]) ? hours!.snow_depth[start] : null,
+    validHours: valid(rain).length,
+    stale: !Number.isFinite(fetched) || now.getTime()-fetched > 6*3_600_000 || fetched > now.getTime()+3_600_000,
+  };
+}

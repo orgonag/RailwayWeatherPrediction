@@ -1,0 +1,126 @@
+{
+  "research_date": "2026-10-27",
+  "station": "05MA011",
+  "station_name": "BIRCH CREEK NEAR ELFROS",
+  "user_confirmed_station": true,
+  "user_event_description": "User corrected the railway issue window to April 22\u201324. Earlier recollection placed railway washout/high water 3\u20134 hours before the Birch Creek gauge peak; exact timestamps remain unverified.",
+  "year_assumption": 2026,
+  "candidate_crossing": {
+    "nrwn_id": "STRUCTURE_1.e7879e6dfaa44bf8bc077c5fd496b2e3",
+    "source_classification": "bridge",
+    "user_description": "culvert; exact asset classification not independently established",
+    "estimated_mp_range": [
+      99.65837483965954,
+      99.63044859788927
+    ],
+    "posted_asset_mileage_confirmed": false,
+    "site_confirmation": "User confirmed Birch Creek / Elfros gauge in conversation; crossing remains a public geometry candidate."
+  },
+  "gross_basin_area_km2": 1137.33,
+  "basin_version": "June 2024",
+  "geometry_limits": [
+    "Gross basin includes areas that may not contribute during this event.",
+    "The June 2024 basin pour point, legacy gauge coordinate and current station metadata differ slightly; the mapped rail crossing is nearby downstream. This basin is a screening proxy, not a new surveyed culvert catchment.",
+    "Municipality overlap does not locate a particular flooded road."
+  ],
+  "gauge_archive_check": {
+    "WSA_graph_first_timestamp": "2026-07-28T18:00:00.000Z",
+    "WSA_graph_last_timestamp": "2026-10-27T08:00:00.000Z",
+    "WSA_graph_contains_April_2026": false,
+    "ECCC_latest_daily_mean_date": "2024-12-31",
+    "ECCC_2026_peak_query_records": 0,
+    "April_peak_date": null,
+    "warning_lead_time": null
+  },
+  "screening_conclusion": "User-corrected railway issue window is Apr 22\u201324, superseding approximate Apr 20. WSA Apr 17 and Apr 18 warnings were published 5 and 4 calendar days before the start of this window. Apr 23 Foam Lake coverage is contemporaneous with the window but outside mapped Birch Creek gross basin. Elfros Apr 23 declaration falls within the window, with original public timestamp absent and available news Apr 29/30. No in-basin social post verified before first railway impact; exact gauge peak and impact timestamps remain unverified. Further social-source research found five specific leads, with one timestamp recovered (June 30, excluded). Historical group-post coverage is incomplete; do not interpret zero verified qualifying posts as proof that early upstream reports did not exist.",
+  "sources": {
+    "station_metadata": "https://api.weather.gc.ca/collections/hydrometric-stations/items?STATION_NUMBER=05MA011&f=json",
+    "basin_catalogue": "https://open.canada.ca/data/en/dataset/0c121878-ac23-46f5-95df-eb9960753375",
+    "basin_download": "https://collaboration.cmc.ec.gc.ca/cmc/hydrometrics/www/HydrometricNetworkBasinPolygons/geojson/MDA_ADP_05.zip",
+    "municipal_boundaries": "https://gis.saskatchewan.ca/arcgis/rest/services/Administrative/MapServer/4",
+    "WSA_gauge_chart": "https://wsask.ca/hydrographs/05MA011-hrly.html",
+    "ECCC_daily_mean": "https://api.weather.gc.ca/collections/hydrometric-daily-mean/items?STATION_NUMBER=05MA011&sortby=-DATE&limit=1&f=json",
+    "ECCC_annual_peaks": "https://api.weather.gc.ca/collections/hydrometric-annual-peaks/items?STATION_NUMBER=05MA011&YEAR=2026&f=json",
+    "NRWN_via_CANTRE": "https://orgonag.github.io/cantre-research/data/manifest.json",
+    "OSM": "https://api.openstreetmap.org/api/0.6/map?bbox=-103.90,51.72,-103.84,51.77",
+    "OSM_licence": "https://www.openstreetmap.org/copyright"
+  },
+  "user_event_benchmark": {
+    "source": "Latest user correction supplied in this conversation on 2026-10-27",
+    "railway_issue_date_window": [
+      "2026-04-22",
+      "2026-04-24"
+    ],
+    "date_precision": "User-confirmed date window; first impact day/time within that window unknown. Year continues existing 2026 research assumption.",
+    "railway_impact_relative_to_gauge_peak_hours": [
+      -4,
+      -3
+    ],
+    "relative_timing_interpretation": "Retains earlier recollection as railway impact before gauge peak; latest correction changes dates only. Not an established hydraulic travel time.",
+    "independently_verified": false,
+    "latest_user_wording": "April 22 - 24th was definetly where we had the issues",
+    "supersedes": "Earlier approximate April 20 benchmark"
+  },
+  "provisional_public_warning_comparison": {
+    "reference_date": "2026-04-22",
+    "reference_meaning": "Start of recalled issue window; not an established exact first-impact timestamp.",
+    "April17_outlook_calendar_days_before_window_start": 5,
+    "April18_advisory_calendar_days_before_window_start": 4,
+    "basis": "Publication dates compared with Apr 22 start of the recalled Apr 22\u201324 issue window. No measured asset-specific warning lead time.",
+    "in_basin_social_post_before_first_impact_verified": false,
+    "April21_FoamLake_flooding": "Event precedes recalled issue window, but verified reporting Apr 23 falls inside it; outside mapped gross basin.",
+    "April22_FoamLake_sandbagging": "Event falls inside recalled issue window; verified news Apr 23. Original social timestamp unknown, and town outside mapped gross basin.",
+    "April23_Elfros_declaration": "Within recalled railway issue window; original public notice not recovered, available reporting Apr 29/30 afterward. Cannot assume advance warning.",
+    "Emerald_April18_to23_event": "Starts before and overlaps recalled issue window; publication timing and precise damage locations not established."
+  },
+  "social_research": {
+    "scope": "Firsthand social observations upstream of Birch Creek / Elfros crossing, published before railway issues April 22\u201324, 2026.",
+    "new_social_post_leads": 5,
+    "new_leads_with_original_publication_time_verified": 1,
+    "verified_timestamped_lead_result": "June 30, 2026: excluded from April case.",
+    "qualifying_upstream_preimpact_posts_verified": 0,
+    "interpretation": "Coverage remains incomplete. Zero verified qualifying posts is not evidence that none existed.",
+    "coverage_limits": [
+      "Public Facebook metadata is readable for several specific URLs, but full group histories and original post dates are not available in these responses.",
+      "Facebook group embed reports the post may have been removed or its privacy settings changed; this does not establish which explanation applies.",
+      "Search index exposed specific Facebook leads; further direct search access encountered challenge/rate limits.",
+      "Native Facebook historical post search was unavailable without connected access.",
+      "No April 1\u201322 capture returned for the tested Emerald Facebook page prefix in the public archive index."
+    ],
+    "geography_improvement": {
+      "source": "https://geogratis.gc.ca/services/geoname/en/geonames.json?bbox=-104.36,51.27,-103.77,51.76&num=1000",
+      "method": "NRCan CGNDB point locations screened against retained ECCC gross basin with point-in-polygon. Gazetteer labels are search terms, not geolocated flood reports.",
+      "in_basin_named_locality_search_targets": [
+        "Wishart",
+        "Rushville",
+        "Krasne",
+        "Wynot",
+        "Kutawa",
+        "Touchwood"
+      ],
+      "landmark_screen": "OSM Highway 16 / Highway 35 junction (-103.8485642,51.7361042) falls outside retained gauge gross basin."
+    },
+    "identified_social_sources": [
+      {
+        "name": "Saskatchewan Highway Updates",
+        "url": "https://www.facebook.com/groups/1544607062462500/",
+        "status": "Specific group post leads found; April history not searched completely."
+      },
+      {
+        "name": "I lived in Wishart Saskatchewan",
+        "url": "https://www.facebook.com/groups/2313710527/",
+        "status": "Group identified through public index; no April flood post verified."
+      },
+      {
+        "name": "RM of Emerald No. 277 Facebook page",
+        "url": "https://www.facebook.com/Rural-Municipality-of-Emerald-No-277-646905325643355/",
+        "status": "Public mirror retained recent Sep/Oct posts only; no April flood notice recovered."
+      }
+    ],
+    "files": [
+      "social-post-leads.csv",
+      "S01-publication-metadata.json",
+      "upstream-search-places.geojson"
+    ]
+  }
+}

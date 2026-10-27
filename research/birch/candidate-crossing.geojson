@@ -1,0 +1,36 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "nrwn_id": "STRUCTURE_1.e7879e6dfaa44bf8bc077c5fd496b2e3",
+        "source_classification": "bridge",
+        "user_description": "culvert; exact asset classification not independently established",
+        "estimated_mp_range": [
+          99.65837483965954,
+          99.63044859788927
+        ],
+        "posted_asset_mileage_confirmed": false,
+        "site_confirmation": "User confirmed Birch Creek / Elfros gauge in conversation; crossing remains a public geometry candidate."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -103.870777,
+            51.747127
+          ],
+          [
+            -103.871055,
+            51.747222
+          ],
+          [
+            -103.871334,
+            51.747318
+          ]
+        ]
+      }
+    }
+  ]
+}

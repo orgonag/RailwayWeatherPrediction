@@ -1,0 +1,634 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.875536,
+          51.51235
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-63",
+        "cgn_id": "HBASP",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.8857304,
+          51.7406308
+        ]
+      },
+      "properties": {
+        "name": "Elfros No. 307",
+        "cgn_id": "HATCK",
+        "class": "MUN2",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.3030395,
+          51.4506127
+        ]
+      },
+      "properties": {
+        "name": "Mount Hope No. 279",
+        "cgn_id": "HATDA",
+        "class": "MUN2",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.22243957,
+          51.506490998
+        ]
+      },
+      "properties": {
+        "name": "Day Star",
+        "cgn_id": "HBCCB",
+        "class": "MUN2",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.9008995,
+          51.5296355
+        ]
+      },
+      "properties": {
+        "name": "Emerald No. 277",
+        "cgn_id": "HATDC",
+        "class": "MUN2",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.9342723,
+          51.5160363
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-45",
+        "cgn_id": "HZAHL",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.1583784,
+          51.3470793
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-18",
+        "cgn_id": "HZADZ",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.9342156,
+          51.3615818
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-8",
+        "cgn_id": "HAXZO",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.8905087,
+          51.4218787
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-31",
+        "cgn_id": "HZABA",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.0759703,
+          51.3495083
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-34",
+        "cgn_id": "HZABZ",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.875462,
+          51.479374
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-56",
+        "cgn_id": "HBACA",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.1460156,
+          51.3099124
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-53",
+        "cgn_id": "HZAJY",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.057778,
+          51.406389
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-66",
+        "cgn_id": "HBADQ",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.0209808,
+          51.3664413
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-9",
+        "cgn_id": "HAXZP",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.8991187,
+          51.538269
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-49",
+        "cgn_id": "HZAGV",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.2473637,
+          51.3322135
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-13",
+        "cgn_id": "HAXZT",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.28942,
+          51.47242
+        ]
+      },
+      "properties": {
+        "name": "Kawacatoose First Nation 88",
+        "cgn_id": "HZAKV",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.8899886,
+          51.5255287
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-43",
+        "cgn_id": "HZAGU",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.9696088,
+          51.3688329
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-48",
+        "cgn_id": "HZAHN",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.0876414,
+          51.350505
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-30",
+        "cgn_id": "HAYAD",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.1878983,
+          51.3501355
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-14",
+        "cgn_id": "HAXZU",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.9339256,
+          51.3687928
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-2A",
+        "cgn_id": "HAXZI",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.9519688,
+          51.3652202
+        ]
+      },
+      "properties": {
+        "name": "Muskowekwan 85-15",
+        "cgn_id": "HAXZV",
+        "class": "IR",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.108639,
+          51.652371
+        ]
+      },
+      "properties": {
+        "name": "Rushville",
+        "cgn_id": "HAPJN",
+        "class": "UNP",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.2172085,
+          51.4167
+        ]
+      },
+      "properties": {
+        "name": "Kutawa",
+        "cgn_id": "HAFGJ",
+        "class": "UNP",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.151996,
+          51.563227
+        ]
+      },
+      "properties": {
+        "name": "Krasne",
+        "cgn_id": "HAFFL",
+        "class": "UNP",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.152067,
+          51.351311
+        ]
+      },
+      "properties": {
+        "name": "Touchwood",
+        "cgn_id": "HANTX",
+        "class": "UNP",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.8488056,
+          51.5091528
+        ]
+      },
+      "properties": {
+        "name": "Bankend",
+        "cgn_id": "HACPI",
+        "class": "HAM",
+        "point_within_gauge_gross_basin": false,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.9942306,
+          51.7759222
+        ]
+      },
+      "properties": {
+        "name": "Mozart",
+        "cgn_id": "HALWZ",
+        "class": "HAM",
+        "point_within_gauge_gross_basin": false,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.3618278,
+          51.7580139
+        ]
+      },
+      "properties": {
+        "name": "Kandahar",
+        "cgn_id": "HATMY",
+        "class": "HAM",
+        "point_within_gauge_gross_basin": false,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.987402,
+          51.446172
+        ]
+      },
+      "properties": {
+        "name": "Wynot",
+        "cgn_id": "HANPE",
+        "class": "UNP",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.8707639,
+          51.2884472
+        ]
+      },
+      "properties": {
+        "name": "Leross",
+        "cgn_id": "HAGET",
+        "class": "VILG",
+        "point_within_gauge_gross_basin": false,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.8607306,
+          51.7432611
+        ]
+      },
+      "properties": {
+        "name": "Elfros",
+        "cgn_id": "HAHUX",
+        "class": "VILG",
+        "point_within_gauge_gross_basin": false,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.9800472,
+          51.3108694
+        ]
+      },
+      "properties": {
+        "name": "Lestock",
+        "cgn_id": "HAGFA",
+        "class": "VILG",
+        "point_within_gauge_gross_basin": false,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.2976028,
+          51.3715167
+        ]
+      },
+      "properties": {
+        "name": "Punnichy",
+        "cgn_id": "HATOZ",
+        "class": "VILG",
+        "point_within_gauge_gross_basin": false,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.977139,
+          51.546279
+        ]
+      },
+      "properties": {
+        "name": "Wishart",
+        "cgn_id": "HANLO",
+        "class": "HAM",
+        "point_within_gauge_gross_basin": true,
+        "source": "NRCan CGNDB"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.179325,
+          51.7688292
+        ]
+      },
+      "properties": {
+        "name": "Wynyard",
+        "cgn_id": "HATMX",
+        "class": "TOWN",
+        "point_within_gauge_gross_basin": false,
+        "source": "NRCan CGNDB"
+      }
+    }
+  ]
+}

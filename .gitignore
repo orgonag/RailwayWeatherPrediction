@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.cache/
+.superpowers/
+*.tsbuildinfo
+playwright-report/
+test-results/
+.DS_Store
+__pycache__/
+public/docs/
+worker/wrangler.local.jsonc

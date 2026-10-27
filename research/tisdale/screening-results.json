@@ -1,0 +1,52 @@
+{
+  "comparison_basin": "ECCC June 2024 gross drainage polygon for 05KB003; not bridge-specific catchments",
+  "basin_area_km2": 4925.45,
+  "hwy335_report_approx_point": {
+    "coordinates_lon_lat": [
+      -104.08632605455337,
+      53.103707986755914
+    ],
+    "inside_armley_gauge_basin": true,
+    "location_precision": "approximate point from reported distance, not surveyed incident coordinates",
+    "method": "4,000 m west along OSM Highway 335 geometry from its Highway 35 junction, using local metric scaling; report distance is approximate"
+  },
+  "hwy35_335_junction": {
+    "coordinates_lon_lat": [
+      -104.0264756,
+      53.1037429
+    ],
+    "inside_armley_gauge_basin": false
+  },
+  "municipalities": [
+    {
+      "name": "CONNAUGHT",
+      "intersects_armley_gauge_basin": true
+    },
+    {
+      "name": "ARBORFIELD",
+      "intersects_armley_gauge_basin": false
+    }
+  ],
+  "five_cue_screening": {
+    "inside_broader_gauge_basin": 1,
+    "outside_broader_gauge_basin": 2,
+    "unresolved": 2
+  },
+  "bridge_specific_upstream_warning_count": "not established",
+  "railway_impact_timeline": {
+    "source": "User recollection supplied in this conversation on 2026-10-27",
+    "threat_first_observed_date_range": [
+      "2026-05-04",
+      "2026-05-05"
+    ],
+    "major_damage_by_date": "2026-05-06",
+    "user_description": "railway threatened May 4/5; wiped out at those bridges by May 6",
+    "precision": "approximate dates; time of day and exact assets unverified",
+    "independently_verified": false
+  },
+  "candidate_date_leads": {
+    "regional_advisory_2026_04_28": "6–7 calendar days before reported threat; 8 before reported major damage",
+    "local_hwy335_report_2026_05_03": "1–2 calendar days before reported threat; 3 before reported major damage",
+    "validation": "Calendar-date comparisons only; not measured operational warning performance."
+  }
+}

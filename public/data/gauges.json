@@ -1,0 +1,30 @@
+{
+  "fetchedAt": "2026-10-27T21:00:34.155213+00:00",
+  "gauges": [
+    {
+      "station": "05MA011",
+      "name": "Birch Creek near Elfros",
+      "lat": 51.747,
+      "lon": -103.87364,
+      "time": "2026-10-27T19:30:00Z",
+      "levelM": 540.475,
+      "dischargeM3s": 0.066,
+      "previousTime": "2026-10-27T17:30:00Z",
+      "previousLevelM": 540.473,
+      "sourceUrl": "https://api.weather.gc.ca/collections/hydrometric-realtime/items?STATION_NUMBER=05MA011&limit=25&sortby=-DATETIME"
+    },
+    {
+      "station": "05KB003",
+      "name": "Carrot River near Armley",
+      "lat": 53.136391,
+      "lon": -104.020828,
+      "time": null,
+      "levelM": null,
+      "dischargeM3s": null,
+      "previousTime": null,
+      "previousLevelM": null,
+      "sourceUrl": "https://api.weather.gc.ca/collections/hydrometric-realtime/items?STATION_NUMBER=05KB003&limit=25&sortby=-DATETIME",
+      "error": "No current gauge observations"
+    }
+  ]
+}
