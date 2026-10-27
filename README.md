@@ -16,7 +16,8 @@ RWP brings track geometry, forecast weather, stream gauges and source-linked com
 - Transparent degree-day snowmelt/runoff scenario: editable area, liquid rain, SWE, positive degree-days, melt factor and runoff coefficient; runoff volume and 24-hour mean flow.
 - ECCC hydrometric readings where available. Birch Creek returned a recent observation in the initial acquisition; Armley returned none and is shown unavailable.
 - Browser-local community/field reports with source URL, separate observed/publication times and verification state.
-- AI evidence package and prompt export; optional server-side AI gateway. **Generated AI briefings require a configured provider.** No AI output is simulated.
+- Versioned AI evidence and prompt export, including available route hourly forecasts; optional server-side high-reasoning API gateway with explicitly configured model, reasoning effort and provenance. **Generated assessments require a securely configured and deployed provider connection.** No AI output is simulated.
+- Shared assessment interface for future statistical models. Training remains optional and is not implemented; [extension guidance](docs/MODEL-EXTENSIONS.md) explains data, labels and validation.
 
 This is a research preview for awareness and inspection prioritization. It is not a validated washout prediction system or an operational movement authority. There is no routed hydrograph or culvert-capacity calculation.
 
