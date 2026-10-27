@@ -6,6 +6,8 @@ RWP brings track geometry, forecast weather, stream gauges and source-linked com
 
 **Public site:** https://railway-weather-prediction.shokti.chatgpt.site
 
+**Source repository:** https://github.com/orgonag/RailwayWeatherPrediction
+
 ## What works in v0.1
 
 - Interactive public track map: 15 subdivisions, 20 separate historical rail chains, 84 weather samples, optional gross gauge basin and public structure layers.
@@ -38,7 +40,7 @@ Refresh public feeds with `npm run data:weather`. Rebuild the rail extract with 
 
 ## Deploy
 
-GitHub Pages workflow: `.github/workflows/pages.yml`. Publish this repository as `orgonag/RailwayWeatherPrediction`, enable Pages with **GitHub Actions**, and run the workflow. The repository integration in the initial session could access existing projects but could not create a repository (HTTP 403); local source and the independent public site are prepared while that account step is pending.
+GitHub Pages workflow: `.github/workflows/pages.yml`. In repository **Settings → Pages → Build and deployment → Source**, select **GitHub Actions**. Push to `main` or run **Build and publish RWP** from the Actions tab to deploy. The repository and complete source are public; the separate public site above is already available. Pages activation is an account setting and must be completed before its workflow can publish.
 
 The Pages workflow refreshes weather/gauges on deployment and every three hours, then builds and deploys. Scheduled Actions can be delayed and may be disabled by GitHub after inactivity. The site always shows source timestamps and can refresh a selected subdivision in the browser. The separate Sites publication uses the same static build; scheduled GitHub deployments do not update that independent host automatically.
 
