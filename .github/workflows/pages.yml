@@ -37,6 +37,8 @@ jobs:
         run: python scripts/refresh_map_layers.py
       - name: Refresh corridor gauges, basins and station history
         run: python scripts/refresh_water_coverage.py
+      - name: Refresh published gauge catchment display polygons
+        run: python scripts/refresh_gauge_catchments.py
       - run: npm run data:validate
       - run: npm run build:all
         env:

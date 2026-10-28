@@ -4,7 +4,7 @@ import type { Gauge, Network, Sample, WeatherSnapshot } from '../types';
 export type Selection = {kind:'track';id:string}|{kind:'gauge';id:string}|{kind:'basin';id:string}|{kind:'asset';id:string}|{kind:'observation';id:string}|null;
 export type WeatherMode = 'precipitation'|'temperature'|'wind'|'none';
 export type PrecipitationMode = 'type'|'rate'|'accumulation';
-export interface LayerVisibility {gauges:boolean;basins:boolean;snowpack:boolean;assets:boolean;mileposts?:boolean;crossings?:boolean;stations?:boolean;culverts?:boolean;majorBasins?:boolean;observations?:boolean}
+export interface LayerVisibility {gauges:boolean;basins:boolean;snowpack:boolean;assets:boolean;mileposts?:boolean;crossings?:boolean;stations?:boolean;culverts?:boolean;majorBasins?:boolean;observations?:boolean;terrain?:boolean;flow?:boolean}
 export interface WeatherLayerProduct {
   id:string;label:string;unit:string;wmsLayer:string;style?:string;
   sourceUrl:string;times:string[];runTime:string|null;legendUrl:string|null;
@@ -30,7 +30,7 @@ export interface MapProps {
   network:Network;weather:WeatherSnapshot|null;subdivision:string;selected:string;
   precipitationHours?:number;
   metric:'temperature'|'rain'|'wind';offset:number;now:Date;
-  basins:FeatureCollection|null;showBasins:boolean;showAssets:boolean;
+  basins:FeatureCollection|null;showBasins:boolean;showAssets:boolean;showTerrain?:boolean;showFlow?:boolean;
   onSelect:(sample:Sample)=>void;onSubdivision:(name:string)=>void;fitRequest:number;
   selection?:Selection;gauges?:Gauge[];showGauges?:boolean;
   snowpack?:BasinSnowSnapshot|null;showSnowpack?:boolean;

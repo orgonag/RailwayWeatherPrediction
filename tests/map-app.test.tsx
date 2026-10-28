@@ -3,7 +3,8 @@ import React from 'react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import App from '../src/App';
-vi.mock('../src/components/TrackMap',()=>({default:({network,onSelect}:{network:{samples:unknown[]};onSelect:(s:unknown)=>void})=><button onClick={()=>onSelect(network.samples[0])}>Select test location</button>}));
+import type {MapProps} from '../src/map/contracts';
+vi.mock('../src/components/TrackMap',()=>({default:({network,onSelect,weatherLayer,onTrackClick}:MapProps)=><div><output data-testid='map-weather'>{weatherLayer?.id??'no raster'}</output><output data-testid='map-rail-handler'>{onTrackClick?'point':'subdivision'}</output><button onClick={()=>onSelect(network.samples[0])}>Select test location</button></div>}));
 afterEach(()=>{cleanup();vi.unstubAllGlobals();vi.useRealTimers();});
 it('updates the selected-location temperature at +72h and retains a following24h forecast window',async()=>{
   const start=Date.parse('2026-10-28T03:00:00Z');
@@ -17,11 +18,18 @@ it('updates the selected-location temperature at +72h and retains a following24h
     if(String(url).endsWith('network.json'))return Response.json(network);
     if(String(url).endsWith('weather.json'))return Response.json({fetchedAt,source:'Open-Meteo',points:{w1:point},errors:[]});
     if(String(url).endsWith('gauges.json'))return Response.json({fetchedAt,gauges:[]});
-    if(String(url).endsWith('basins.geojson'))return Response.json({type:'FeatureCollection',features:[]});
+    if(String(url).endsWith('.geojson'))return Response.json({type:'FeatureCollection',features:[]});
     return Response.json({fetchedAt,products:{},basins:[],gauges:[],errors:[]});
   });
   render(<App/>);
-  fireEvent.click(await screen.findByRole('button',{name:'Select test location'}));
+  const select=await screen.findByRole('button',{name:'Select test location'});
+  expect((screen.getByLabelText('Weather layer') as HTMLSelectElement).value).toBe('temperature');
+  expect(screen.getByTestId('map-weather').textContent).toBe('no raster');
+  expect(screen.getByTestId('map-rail-handler').textContent).toBe('subdivision');
+  expect(screen.queryByLabelText('Forecast hour offset')).toBeNull();
+  fireEvent.focus(screen.getByLabelText('Find a location'));
+  expect(screen.queryByText('Railway forecast point')).toBeNull();
+  fireEvent.click(select);
   expect(screen.getByLabelText('Temperature at selected time').textContent).toContain('0');
   fireEvent.change(screen.getByLabelText('Forecast hour offset'),{target:{value:'72'}});
   expect(screen.getByLabelText('Temperature at selected time').textContent).toContain('72');
@@ -32,4 +40,7 @@ it('updates the selected-location temperature at +72h and retains a following24h
   fireEvent.change(screen.getByLabelText('Precipitation period end'),{target:{value:end}});
   expect(screen.getByLabelText('Selected period total water equivalent').textContent).toContain('12');
   expect(screen.getByLabelText('Selected period liquid rain').textContent).toContain('9');
+  fireEvent.click(screen.getByRole('button',{name:'View period amounts'}));
+  expect(screen.getByRole('columnheader',{name:'12h selected period water · mm'})).toBeTruthy();
+  expect(screen.getByRole('cell',{name:'12.0 mm'})).toBeTruthy();
 });
