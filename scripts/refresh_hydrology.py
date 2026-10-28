@@ -111,7 +111,7 @@ def refresh_station(station: dict, now: dt.datetime) -> dict:
         datum = response['features'][0]['properties'].get('VERTICAL_DATUM')
         metadata['stationMetadataUrl'] = station_url
         metadata['stationMetadataResponseTime'] = response.get('timeStamp')
-        metadata['historicalLevelDatumVerified'] = datum == station['historicalDatum']
+        metadata['historicalLevelDatumVerified'] = bool(station['historicalDatum']) and datum == station['historicalDatum']
     except (RuntimeError, KeyError, IndexError) as error:
         errors.append(f'Station metadata unavailable: {error}')
     for key, url, is_daily in [('realtime', realtime_url, False), ('daily', daily_url, True)]:

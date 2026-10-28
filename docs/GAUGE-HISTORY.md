@@ -1,8 +1,12 @@
 # Hydrometric history and chart
 
+The corridor expansion uses `python scripts/refresh_water_coverage.py`:57 unique stations, provider-aware ECCC/WSA observations and per-station lazy history files. The last-three-year archive view uses actual available dates. See [coverage and downloads](WATER-COVERAGE.md). Birch2025 was recovered from separate ECCC unit archives as clearly labelled RWP-derived daily means; it remains absent from the cited approved HYDAT release. See [unit archive methods](UNIT-HISTORY.md).
+
+## Original two-station acquisition and continuity evidence
+
 `python scripts/refresh_hydrology.py` refreshes `public/data/hydrology.json` from the public ECCC GeoMet hydrometric real-time, daily-mean and station collections. Python's standard HTTPS proxy configuration is respected. The two stations run with a concurrency limit of two; pagination, attempts and request times are bounded. A failed query records its error and does not return a partial series as complete. Zero and missing values remain distinct. All numeric records retain their original timestamps/dates and source quality symbols.
 
-The acquisition on **2026-10-28 02:49 UTC** retrieved:
+The original acquisition on **2026-10-28 02:49 UTC**, before the provincial fallback was added, retrieved:
 
 | Station | Recent native observations | Historical archive | Level reference |
 | --- | --- | --- | --- |
@@ -19,6 +23,6 @@ The official [HYDAT SQLite release dated July 17, 2026](https://collaboration.cm
 
 Missing values, ice-qualified values and partial-day historical means are omitted from lines and remain available in the source records. Official estimates can be shown with their qualifier. Coverage counts and available source years disclose the remaining gaps. Level and flow use separate controls and axes: metres relative to the station reference and m³/s respectively. Daily means are not flood peaks. No gauge future is generated.
 
-The default graph remains on the current period even when a station has no observations. **View latest archive** explicitly opens its dated historical daily readings and changes the comparison reference to that displayed archive year. It does not relabel an old record as the current observation or substitute 2023 for the missing 2025 comparison. Armley's archived graph is usable with this control; its current condition remains unavailable.
+The default graph remains on the current period even when a station has no observations. **View latest archive** explicitly opens its dated historical daily readings and changes the comparison reference to that displayed archive year. It does not relabel an old record as the current observation or substitute 2023 for the missing 2025 comparison. Armley's archived graph is usable with this control. Its current discharge is now available from the separate WSA public hydrograph; the empty federal response does not establish an absence of provincial measurements.
 
 These records retain the Open Government Licence – Canada attribution. Source URLs, response times, quality counts and archive coverage are available in the snapshot's additive `sourceMetadata`; shared application contracts remain compatible.

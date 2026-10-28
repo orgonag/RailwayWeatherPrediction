@@ -9,11 +9,20 @@ export interface Sample {
   id: string; subdivision: string; chainId: string; lat: number; lon: number;
   mp: number | null; positionKm: number;
 }
+export interface RailAsset {
+  id:string;subdivision:string;kind:string;mp:number|null;name?:string;chainId?:string;mpEnd?:number|null;
+  mileageType?:'calculated'|'unavailable';postedMp?:number|null;postedMileageTier?:string;
+  sourceLayer?:string;sourceUrl?:string;sourceAttributes?:Record<string,string>;positions?:unknown[];
+}
+export interface TemperatureObservation {
+  id:string;name:string;lat:number;lon:number;temperatureC:number|null;observedAt:string|null;
+  source:string;sourceUrl:string;quality:string;provider:string;historyPath?:string;historyStart?:string;historyEnd?:string;historyResolution?:'daily';
+}
 export interface Network {
   metadata: { version: string; retrievedAt: string; sourceVintage: string; attribution: string; snapshotSha256: string };
   subdivisions: Subdivision[];
   tracks: FeatureCollection<LineString, { id: string; subdivision: string; color: string; role: string }>;
-  assets: FeatureCollection<Point | LineString, { id: string; subdivision: string; kind: string; mp: number | null }>;
+  assets: FeatureCollection<Point | LineString, RailAsset>;
   samples: Sample[];
 }
 export interface ForecastPoint {
@@ -37,6 +46,7 @@ export interface Gauge {
   station: string; name: string; lat: number; lon: number;
   time: string | null; levelM: number | null; dischargeM3s: number | null;
   previousTime: string | null; previousLevelM: number | null; sourceUrl: string; error?: string;
+  provider?:string;operator?:string;sourceUrls?:string[];historyPath?:string;realtimeProvider?:string;status?:string;distanceToRailKm?:number;
 }
 export interface GaugeSnapshot { fetchedAt: string; gauges: Gauge[] }
 export interface Observation {

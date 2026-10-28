@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import type { FeatureCollection } from 'geojson';
 import type { Sample } from '../types';
-import type { MapProps } from '../map/contracts';
+import type { MapProps, WeatherFrameState } from '../map/contracts';
 import { fmt, metricColor, metricValue } from '../lib/presentation';
+import { sumHours, forecastFresh } from '../map/weather';
 import 'leaflet/dist/leaflet.css';
 import './track-map.css';
 
-type Groups = Record<'rail'|'labels'|'samples'|'gauges'|'basins'|'snow'|'assets',L.LayerGroup>;
+type Groups = Record<'rail'|'labels'|'samples'|'gauges'|'basins'|'snow'|'assets'|'regional'|'observations',L.LayerGroup>;
 const textNode=(text:string,className='')=>{
   const element=document.createElement('span');
   element.textContent=text;
@@ -15,7 +16,7 @@ const textNode=(text:string,className='')=>{
   return element;
 };
 const samplePosition=(sample:Sample)=>sample.mp===null?'milepost uncalibrated':`calculated MP ${fmt(sample.mp)}`;
-const metricUnit=(metric:MapProps['metric'])=>metric==='temperature'?'°C':metric==='rain'?'mm/h':'km/h gusts';
+const metricUnit=(metric:MapProps['metric'])=>metric==='temperature'?'°C':metric==='rain'?'mm in preceding hour':'km/h gusts';
 function accessible(layer:L.Marker|L.Path,label:string,select:()=>void){
   const element=layer.getElement();
   if(!element)return;
@@ -41,6 +42,7 @@ export default function TrackMap(props:MapProps){
   const container=useRef<HTMLDivElement>(null),map=useRef<L.Map|null>(null),groups=useRef<Groups|null>(null);
   const current=useRef(props);current.current=props;
   const lastFit=useRef(''),lastSelection=useRef<string|null>(null);
+  const displayed=useRef<{tile:L.TileLayer.WMS;time:string;product:string}|null>(null);
   const [weatherStatus,setWeatherStatus]=useState<string|null>(null);
 
   useEffect(()=>{
@@ -59,7 +61,7 @@ export default function TrackMap(props:MapProps){
       attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',maxZoom:19,
       keepBuffer:0,updateWhenIdle:true,
     }).addTo(m);
-    groups.current={rail:L.layerGroup().addTo(m),labels:L.layerGroup().addTo(m),samples:L.layerGroup().addTo(m),gauges:L.layerGroup().addTo(m),basins:L.layerGroup().addTo(m),snow:L.layerGroup().addTo(m),assets:L.layerGroup().addTo(m)};
+    groups.current={rail:L.layerGroup().addTo(m),labels:L.layerGroup().addTo(m),samples:L.layerGroup().addTo(m),gauges:L.layerGroup().addTo(m),basins:L.layerGroup().addTo(m),snow:L.layerGroup().addTo(m),assets:L.layerGroup().addTo(m),regional:L.layerGroup().addTo(m),observations:L.layerGroup().addTo(m)};
     const resize=typeof ResizeObserver==='undefined'?null:new ResizeObserver(()=>m.invalidateSize({pan:false}));
     resize?.observe(container.current);
     return ()=>{resize?.disconnect();m.remove();map.current=null;groups.current=null;};
@@ -122,12 +124,13 @@ export default function TrackMap(props:MapProps){
     const selectedId=props.selection===undefined?props.selected:props.selection?.kind==='track'?props.selection.id:null;
     for(const sample of props.network.samples){
       const active=sample.subdivision===props.subdivision,selected=sample.id===selectedId,alert=props.alertSampleIds?.includes(sample.id)??false;
-      const value=metricValue(props.weather?.points[sample.id],props.metric,props.now,props.offset);
+      const point=props.weather?.points[sample.id];
+      const value=forecastFresh(point,new Date())?(props.metric==='rain'&&props.precipitationHours?sumHours(point,'precipitation',new Date(props.now.getTime()+props.offset*3600000),props.precipitationHours):metricValue(point,props.metric,props.now,props.offset)):null;
       const dot=textNode('','rwp-sample-dot');dot.style.backgroundColor=metricColor(value,props.metric);
       if(alert)dot.append(textNode('!','rwp-alert-mark'));
       const className=`rwp-sample-marker${active?' is-route':''}${selected?' is-selected':''}${alert?' has-alert':''}`;
       const marker=iconMarker([sample.lat,sample.lon],className,dot,'sampleMarkers',selected?22:active?16:10).addTo(group);
-      const valueText=value===null?'weather unavailable':`${fmt(value)} ${metricUnit(props.metric)}`;
+      const valueText=value===null?'weather unavailable':`${fmt(value)} ${(props.precipitationHours?`mm over ${props.precipitationHours}h`:metricUnit(props.metric))}`;
       const label=`${sample.subdivision} · ${samplePosition(sample)} · ${valueText}${alert?' · review alert':''}`;
       marker.bindTooltip(textNode(label),{className:'rwp-map-tooltip',direction:'top',offset:[0,-6]});
       const select=()=>current.current.onSelect(sample);
@@ -146,13 +149,13 @@ export default function TrackMap(props:MapProps){
         if(permanent)occupied.push(point);
         const content=document.createElement('span');content.className='rwp-sample-label';
         const position=sample.mp===null?'MP uncalibrated':`calc. MP ${fmt(sample.mp)}`;
-        content.append(textNode(position,'rwp-sample-position'),textNode(value===null?'Weather unavailable':`${fmt(value)} ${metricUnit(props.metric)}`,'rwp-sample-value'));
-        marker.bindTooltip(permanent?content:textNode(`${sample.subdivision} · ${samplePosition(sample)} · ${value===null?'weather unavailable':`${fmt(value)} ${metricUnit(props.metric)}`}`),{permanent,direction:'right',offset:[10,0],className:permanent?'rwp-map-tooltip rwp-value-tooltip':'rwp-map-tooltip'});
+        content.append(textNode(position,'rwp-sample-position'),textNode(value===null?'Weather unavailable':`${fmt(value)} ${(props.precipitationHours?`mm over ${props.precipitationHours}h`:metricUnit(props.metric))}`,'rwp-sample-value'));
+        marker.bindTooltip(permanent?content:textNode(`${sample.subdivision} · ${samplePosition(sample)} · ${value===null?'weather unavailable':`${fmt(value)} ${(props.precipitationHours?`mm over ${props.precipitationHours}h`:metricUnit(props.metric))}`}`),{permanent,direction:'right',offset:[10,0],className:permanent?'rwp-map-tooltip rwp-value-tooltip':'rwp-map-tooltip'});
       }
     };
     drawLabels();m.on('zoomend moveend',drawLabels);
     return ()=>{m.off('zoomend moveend',drawLabels);group.clearLayers();};
-  },[props.network,props.weather,props.subdivision,props.selected,props.selection,props.metric,props.now,props.offset,props.alertSampleIds]);
+  },[props.network,props.weather,props.subdivision,props.selected,props.selection,props.metric,props.now,props.offset,props.alertSampleIds,props.precipitationHours]);
 
   useEffect(()=>{
     const group=groups.current?.gauges;if(!group)return;group.clearLayers();
@@ -184,7 +187,7 @@ export default function TrackMap(props:MapProps){
       pane:'basin-snow',style:feature=>{
         const station=String(feature?.properties?.StationNum??''),swe=props.snowpack?.basins.find(b=>b.station===station)?.sweMm;
         const color=swe==null?'#a4adb4':swe<25?'#a7d3e5':swe<75?'#559fca':swe<150?'#326baf':'#564491';
-        return {color,weight:0,fillColor:color,fillOpacity:swe==null?.12:.38};
+        return {color,weight:0,fillColor:color,fillOpacity:swe===0?0:swe==null?.12:.38};
       },onEachFeature:(feature,layer)=>bind(feature,layer,true),
     }).addTo(snow);
     if(props.showBasins)L.geoJSON(props.basins,{
@@ -194,47 +197,85 @@ export default function TrackMap(props:MapProps){
   },[props.basins,props.showBasins,props.showSnowpack,props.snowpack,props.selection]);
 
   useEffect(()=>{
-    const group=groups.current?.assets;if(!group)return;group.clearLayers();
-    if(!props.showAssets)return;
-    L.geoJSON(props.network.assets,{
-      pane:'structures',style:{color:'#985a19',weight:5},
-      pointToLayer:(_feature,latlng)=>L.circleMarker(latlng,{pane:'structures',radius:4,color:'#fff',weight:1.5,fillColor:'#985a19',fillOpacity:1}),
-      onEachFeature:(feature,layer)=>layer.bindTooltip(textNode(`${feature.properties.kind} · ${feature.properties.subdivision} · ${feature.properties.mp==null?'milepost unconfirmed':`calculated MP ${fmt(feature.properties.mp)}`}`),{className:'rwp-map-tooltip'}),
-    }).addTo(group);
-  },[props.network,props.showAssets]);
+    const m=map.current,group=groups.current?.assets;if(!m||!group)return;
+    const draw=()=>{
+      group.clearLayers();const visibility=props.assetVisibility;
+      const enabled=(kind:string)=>kind==='milepost'?visibility?.mileposts:kind==='crossing'?visibility?.crossings:kind==='station'?visibility?.stations:kind==='culvert'?visibility?.culverts:props.showAssets;
+      const features=props.network.assets.features.filter(f=>enabled(f.properties.kind)&&(!props.subdivision||f.properties.subdivision===props.subdivision));
+      L.geoJSON({type:'FeatureCollection',features} as FeatureCollection,{
+        pane:'structures',style:{color:'#985a19',weight:5},
+        pointToLayer:(feature,latlng)=>feature.properties.kind==='milepost'?iconMarker(latlng,'rwp-milepost-marker',textNode(String(feature.properties.mp)),'structures',24):L.circleMarker(latlng,{pane:'structures',radius:feature.properties.kind==='station'?6:4,color:'#fff',weight:1.5,fillColor:feature.properties.kind==='crossing'?'#654e9e':'#985a19',fillOpacity:1}),
+        filter:feature=>feature.properties.kind!=='milepost'||m.getZoom()>=9||props.selection?.id===feature.properties.id,
+        onEachFeature:(feature,layer)=>{
+          const p=feature.properties,label=`${p.name||p.kind} · ${p.subdivision} · ${p.mp==null?'milepost unconfirmed':`calculated MP ${fmt(p.mp)}`}`;
+          const select=()=>current.current.onAsset?.(p.id);
+          layer.bindTooltip(textNode(label),{className:'rwp-map-tooltip'}).on('click',select).on('add',()=>accessible(layer as L.Path,label,select));
+        },
+      }).addTo(group);
+    };draw();m.on('zoomend',draw);return()=>{m.off('zoomend',draw);group.clearLayers();};
+  },[props.network,props.showAssets,props.assetVisibility,props.subdivision,props.selection]);
+
+  useEffect(()=>{
+    const group=groups.current?.regional;if(!group)return;group.clearLayers();
+    if(!props.showMajorBasins||!props.majorBasins)return;
+    L.geoJSON(props.majorBasins,{pane:'basin-outline',style:{color:'#8e668c',weight:2,dashArray:'3 7',fillOpacity:.025},onEachFeature:(f,layer)=>{
+      const label=`${f.properties.name} · regional drainage basin`,select=()=>current.current.onBasin?.(f.properties.id);
+      layer.bindTooltip(textNode(label),{className:'rwp-map-tooltip',sticky:true}).on('click',select).on('add',()=>accessible(layer as L.Path,label,select));
+    }}).addTo(group);
+  },[props.majorBasins,props.showMajorBasins]);
+
+  useEffect(()=>{
+    const group=groups.current?.observations;if(!group)return;group.clearLayers();if(!props.showObservations)return;
+    for(const station of props.observations??[]){
+      const label=`${station.name} · observed ${station.temperatureC==null?'temperature unavailable':station.temperatureC+' °C'} · ${station.observedAt??'time unavailable'}`;
+      const marker=iconMarker([station.lat,station.lon],'rwp-temperature-marker',textNode(station.temperatureC==null?'T':station.temperatureC.toFixed(1)),'gaugeMarkers',30).addTo(group),select=()=>current.current.onObservation?.(station.id);
+      marker.bindTooltip(textNode(label),{className:'rwp-map-tooltip'}).on('click',select);accessible(marker,label,select);
+    }
+  },[props.observations,props.showObservations]);
 
   useEffect(()=>{
     const m=map.current;if(!m)return;
     const product=props.weatherLayer,time=props.layerTime;
-    if(!product){setWeatherStatus(null);return;}
+    const key=`${product?.id??''}:${product?.runTime??''}:${time??''}`;
+    const report=(status:WeatherFrameState['status'])=>current.current.onWeatherFrame?.({key,status,displayedTime:displayed.current?.time??null});
+    const clear=()=>{displayed.current?.tile.remove();displayed.current=null;};
+    if(!product){clear();setWeatherStatus(null);report('idle');return;}
     if(product.status!=='available'||!time||!product.times.includes(time)){
-      setWeatherStatus(`${product.label}: imagery unavailable for the selected hour.`);return;
+      clear();setWeatherStatus(`${product.label}: imagery unavailable for the selected hour.`);report('unavailable');return;
     }
+    if(displayed.current?.product!==product.id+product.runTime)clear();
+    // Limit WMS requests to track extents plus 75 km of surrounding weather. Do not cut the Alberta track at a provincial border.
+    const coords=props.network.tracks.features.filter(f=>!props.subdivision||f.properties.subdivision===props.subdivision).flatMap(f=>f.geometry.coordinates);
+    const extent=L.latLngBounds(coords.map(c=>L.latLng(c[1],c[0])));
+    const bounds=extent.isValid()?L.latLngBounds([extent.getSouth()-.68,extent.getWest()-1.15],[extent.getNorth()+.68,extent.getEast()+1.15]):undefined;
     let tile:L.TileLayer.WMS;
     try{
-      const opacity=Math.min(1,Math.max(0,props.weatherOpacity??.55));
       tile=L.tileLayer.wms(wmsEndpoint(product.sourceUrl),{
         pane:'weather',layers:product.wmsLayer,styles:product.style??'',format:'image/png',transparent:true,version:'1.3.0',
-        opacity,attribution:'Weather imagery © Environment and Climate Change Canada',keepBuffer:0,updateWhenIdle:true,
-        // GeoMet accepts seconds precision, while the browser catalog keeps canonical ISO milliseconds.
+        opacity:0,attribution:'Weather imagery © Environment and Climate Change Canada',keepBuffer:0,updateWhenIdle:true,bounds,maxNativeZoom:8,
         ...{time:time.replace(/\.000Z$/,'Z')},...(product.runTime?{DIM_REFERENCE_TIME:product.runTime.replace(/\.000Z$/,'Z')}:{}),
       });
-    }catch{
-      setWeatherStatus(`${product.label}: imagery source unavailable.`);return;
-    }
-    let active=true,failed=false;
-    setWeatherStatus('Loading weather imagery…');
-    const error=()=>{failed=true;if(active)setWeatherStatus('Weather imagery missing in part of the view. Blank areas are unavailable.');};
-    const load=()=>{if(active&&!failed)setWeatherStatus(null);};
-    const loading=()=>{if(active&&!failed)setWeatherStatus('Loading weather imagery…');};
-    tile.on('tileerror',error).on('load',load).on('loading',loading).addTo(m);
-    return ()=>{
-      active=false;
-      // Keep Leaflet's internal remove listener so it unregisters the grid from map events.
-      tile.off('tileerror',error).off('load',load).off('loading',loading);
-      tile.remove();
+    }catch{clear();setWeatherStatus(`${product.label}: imagery source unavailable.`);report('error');return;}
+    let active=true,failed=false,loaded=false;
+    const previous=()=>displayed.current?` Showing previous image: ${new Date(displayed.current.time).toLocaleString('en-CA',{timeZone:'America/Regina'})} CST.`:'';
+    const loading=()=>{if(active&&!failed){setWeatherStatus('Loading weather imagery…'+previous());report('loading');}};
+    const error=()=>{if(!active)return;failed=true;tile.setOpacity(0);setWeatherStatus('Weather imagery unavailable in this view. Playback paused.'+previous());report('error');};
+    const load=()=>{
+      if(!active||failed)return;loaded=true;clearTimeout(timeout);
+      if(displayed.current?.tile!==tile)clear();
+      displayed.current={tile,time,product:product.id+product.runTime};tile.setOpacity(current.current.weatherOpacity??.55);
+      setWeatherStatus(null);report('ready');
     };
-  },[props.weatherLayer,props.layerTime,props.weatherOpacity]);
+    const timeout=setTimeout(error,25000);
+    loading();tile.on('tileerror',error).on('load',load).on('loading',loading).addTo(m);
+    // A pan beyond the corridor has no eligible tiles, so Leaflet will not emit load.
+    if(bounds&&!m.getBounds().intersects(bounds)){clearTimeout(timeout);setWeatherStatus('Outside the railway weather coverage. Return to the railway to load imagery.');report('unavailable');}
+    return()=>{
+      active=false;clearTimeout(timeout);tile.off('tileerror',error).off('load',load).off('loading',loading);
+      if(!loaded)tile.remove();
+    };
+  },[props.weatherLayer,props.layerTime,props.network,props.subdivision,props.weatherRequest]);
+  useEffect(()=>{displayed.current?.tile.setOpacity(props.weatherOpacity??.55);},[props.weatherOpacity]);
 
   useEffect(()=>{
     const m=map.current;if(!m)return;
@@ -255,11 +296,13 @@ export default function TrackMap(props:MapProps){
     if(selection.kind==='track'){const sample=props.network.samples.find(s=>s.id===selection.id);if(sample)point=L.latLng(sample.lat,sample.lon);}
     if(selection.kind==='gauge'){const gauge=props.gauges?.find(g=>g.station===selection.id);if(gauge)point=L.latLng(gauge.lat,gauge.lon);}
     if(selection.kind==='basin'){
-      const feature=props.basins?.features.find(f=>String(f.properties?.StationNum)===selection.id);
+      const feature=[...(props.basins?.features??[]),...(props.majorBasins?.features??[])].find(f=>String(f.properties?.StationNum??f.properties?.id)===selection.id);
       if(feature){const bounds=L.geoJSON(feature).getBounds();if(bounds.isValid())point=bounds.getCenter();}
     }
+    if(selection.kind==='asset'){const asset=props.network.assets.features.find(f=>f.properties.id===selection.id);if(asset){const bounds=L.geoJSON(asset).getBounds();if(bounds.isValid())point=bounds.getCenter();}}
+    if(selection.kind==='observation'){const station=props.observations?.find(f=>f.id===selection.id);if(station)point=L.latLng(station.lat,station.lon);}
     if(point&&!m.getBounds().pad(-.12).contains(point))m.panTo(point,{animate:false});
-  },[props.selection,props.selected,props.network,props.gauges,props.basins]);
+  },[props.selection,props.selected,props.network,props.gauges,props.basins,props.majorBasins,props.observations]);
 
   return <div className="track-map-shell">
     <div ref={container} className="track-map" role="region" aria-label="Interactive railway track and forecast map"/>

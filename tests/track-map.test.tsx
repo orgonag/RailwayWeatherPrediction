@@ -139,3 +139,48 @@ it('allows snow water fill independently from basin outlines and selects by publ
   expect(document.querySelectorAll('.leaflet-basin-snow-pane path')).toHaveLength(0);
   expect(document.querySelectorAll('.leaflet-basin-outline-pane path')).toHaveLength(1);
 });
+
+it('holds the completed image while a slow next frame loads, then swaps only on load',()=>{
+  const onWeatherFrame=vi.fn();
+  const {rerender}=render(<TrackMap {...props} onWeatherFrame={onWeatherFrame} weatherLayer={product} layerTime={product.times[0]}/>);
+  const layers=()=>{const found:L.TileLayer.WMS[]=[];map.eachLayer(l=>{if(l instanceof L.TileLayer.WMS)found.push(l);});return found;};
+  const first=layers()[0];act(()=>{first.fire('load');});
+  expect(onWeatherFrame.mock.lastCall?.[0].status).toBe('ready');
+  rerender(<TrackMap {...props} onWeatherFrame={onWeatherFrame} weatherLayer={product} layerTime={product.times[1]}/>);
+  expect(layers()).toHaveLength(2);
+  expect(onWeatherFrame.mock.lastCall?.[0]).toMatchObject({status:'loading',displayedTime:product.times[0]});
+  expect(screen.getByRole('status').textContent).toContain('Showing previous image');
+  act(()=>{layers().find(l=>l!==first)!.fire('load');});
+  expect(layers()).toHaveLength(1);
+  expect(onWeatherFrame.mock.lastCall?.[0]).toMatchObject({status:'ready',displayedTime:product.times[1]});
+});
+
+it('changes opacity without requesting another frame and bounds weather requests to the rail region',()=>{
+ const {rerender}=render(<TrackMap {...props} weatherLayer={product} layerTime={product.times[0]}/>);
+ let layer:L.TileLayer.WMS|undefined;map.eachLayer(l=>{if(l instanceof L.TileLayer.WMS)layer=l;});
+ act(()=>{layer!.fire('load');});
+ const tiles=[...document.querySelectorAll('.leaflet-weather-pane img')];
+ rerender(<TrackMap {...props} weatherLayer={product} layerTime={product.times[0]} weatherOpacity={.3}/>);
+ expect([...document.querySelectorAll('.leaflet-weather-pane img')]).toEqual(tiles);
+ expect(layer!.options.opacity).toBe(.3);
+ expect((layer!.options.bounds as L.LatLngBounds).contains([51,-104])).toBe(true);
+ expect((layer!.options.bounds as L.LatLngBounds).contains([49,-123])).toBe(false);
+ expect(layer!.options.maxNativeZoom).toBe(8);
+});
+
+it('times out slow imagery with an explicit paused/error state',()=>{
+ vi.useFakeTimers();const onWeatherFrame=vi.fn();
+ render(<TrackMap {...props} onWeatherFrame={onWeatherFrame} weatherLayer={product} layerTime={product.times[0]}/>);
+ act(()=>{vi.advanceTimersByTime(25000);});
+ expect(onWeatherFrame.mock.lastCall?.[0].status).toBe('error');
+ expect(screen.getByRole('status').textContent).toContain('Playback paused');
+ vi.useRealTimers();
+});
+
+it('exposes an independently selectable calculated mile reference and regional basin',()=>{
+ const onAsset=vi.fn(),onBasin=vi.fn();
+ const withAsset:Network={...network,assets:{type:'FeatureCollection',features:[{type:'Feature',properties:{id:'mile-10',kind:'milepost',name:'Mile 10 · calculated',subdivision:'Wynyard',mp:10},geometry:{type:'Point',coordinates:[-104,51]}}]}};
+ render(<TrackMap {...props} network={withAsset} selection={{kind:'asset',id:'mile-10'}} assetVisibility={{gauges:false,basins:false,assets:false,snowpack:false,mileposts:true}} onAsset={onAsset} showMajorBasins onBasin={onBasin} majorBasins={{type:'FeatureCollection',features:[{type:'Feature',properties:{id:'regional-one',name:'Regional One'},geometry:{type:'Polygon',coordinates:[[[-104.2,50.9],[-103.6,50.9],[-103.6,51.4],[-104.2,50.9]]]}}]}}/>);
+ fireEvent.click(screen.getByRole('button',{name:/Mile 10 · calculated/}));expect(onAsset).toHaveBeenCalledWith('mile-10');
+ fireEvent.click(screen.getByRole('button',{name:/Regional One · regional/}));expect(onBasin).toHaveBeenCalledWith('regional-one');
+});

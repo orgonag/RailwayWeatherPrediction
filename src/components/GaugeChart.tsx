@@ -8,12 +8,13 @@ const formatDate = (time: string) => new Intl.DateTimeFormat('en-CA', { timeZone
 const number = (value: number | null) => value === null ? 'Unavailable' : value.toFixed(3);
 export default function GaugeChart({ gauge, now }: { gauge: GaugeHistory; now: Date }) {
   const [period, setPeriod] = useState<GaugePeriod>('7d');
-  const [metric, setMetric] = useState<GaugeMetric>('level');
+  const [metric, setMetric] = useState<GaugeMetric>(()=>gauge.observations.some(r=>r.levelM!==null)?'level':gauge.observations.some(r=>r.dischargeM3s!==null)?'flow':'level');
   const [archiveStation, setArchiveStation] = useState<string | null>(null);
+  const [archiveDate,setArchiveDate]=useState<string>('');
   const [index, setIndex] = useState<number | null>(null);
   const titleId = useId(); const detailId = useId();
   const archive = archiveStation === gauge.station && gauge.historyAvailableThrough !== null;
-  const clock = archive ? new Date(`${gauge.historyAvailableThrough}T23:59:59-06:00`) : now;
+  const clock = archive ? new Date(`${archiveDate||gauge.historyAvailableThrough}T23:59:59-06:00`) : now;
   const series = useMemo(() => buildGaugeSeries(gauge, clock, period, metric), [gauge, clock.getTime(), period, metric]);
   const lines = [series.actual, series.previousYear, series.priorThreeYears];
   const all = lines.flatMap(l => l.points.filter(p => p.value !== null));
@@ -37,7 +38,8 @@ export default function GaugeChart({ gauge, now }: { gauge: GaugeHistory; now: D
       <div role="group" aria-label="Gauge chart metric">{(['level', 'flow'] as const).map(value =>
         <button key={value} type="button" aria-pressed={metric === value} onClick={() => { setMetric(value); reset(); }}>{value === 'level' ? 'Level' : 'Flow'}</button>)}</div>
     </div>
-    <p className="gauge-history-period">{archive ? `Archive view · ${gauge.historyAvailableThrough}` : 'Recent observations'} · {formatDate(series.start)}–{formatDate(series.end)} {series.calendarDates.at(-1)?.slice(0, 4)} · CST</p>
+    <p className="gauge-history-period">{archive ? `Archive view · ${archiveDate||gauge.historyAvailableThrough}` : 'Recent observations'} · {formatDate(series.start)}–{formatDate(series.end)} {series.calendarDates.at(-1)?.slice(0, 4)} · CST</p>
+    {archive&&<label className='gauge-history-date'>Period ending <input type='date' aria-label='Gauge archive period ending' value={archiveDate||gauge.historyAvailableThrough||''} min={gauge.daily[0]?.date} max={gauge.historyAvailableThrough??undefined} onChange={e=>{if(/^\d{4}-\d{2}-\d{2}$/.test(e.target.value)){setArchiveDate(e.target.value);reset();}}}/></label>}
     {archive && <p className="gauge-history-note">Comparisons use the displayed archive year. These are historical daily means.</p>}
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={titleId} onPointerMove={event => {
       if (!inspected.length) return;
@@ -69,6 +71,7 @@ export default function GaugeChart({ gauge, now }: { gauge: GaugeHistory; now: D
     <p className="gauge-history-note">{metric === 'level' ? `Station datum: ${series.datum ?? 'unavailable'}. Levels at different stations are not comparable.` : 'Flow in m³/s. Daily means are not instantaneous peaks.'} Season starts January 1. Daily archive dates use the station calendar; reading timestamps remain UTC.</p>
     {gauge.historyAvailableThrough && <button type="button" className="gauge-history-archive" onClick={() => { setArchiveStation(archive ? null : gauge.station); reset(); }}>{archive ? 'Return to current period' : 'View latest archive'}</button>}
     {series.warnings.length > 0 && <details className="gauge-history-sources"><summary>Coverage and source notes ({series.warnings.length})</summary><ul>{series.warnings.map(note => <li key={note}>{note}</li>)}</ul></details>}
-    <a className="gauge-history-source" href={gauge.sourceUrl} target="_blank" rel="noreferrer">ECCC / Water Survey of Canada · {gauge.station}</a>
+    <a className='gauge-history-source' href={import.meta.env.BASE_URL+'data/history/'+gauge.station+'.json'} target='_blank' rel='noreferrer'>Download available history (JSON)</a>
+    <a className="gauge-history-source" href={gauge.sourceUrl} target="_blank" rel="noreferrer">{gauge.provider??'ECCC / Water Survey of Canada'} · {gauge.station}</a>
   </section>;
 }

@@ -24,3 +24,6 @@
 .rwp-map-status{position:absolute;right:58px;bottom:30px;max-width:min(330px,calc(100% - 90px));z-index:700;pointer-events:none;background:#fffffff2;border:1px solid #d0d9d3;border-radius:5px;padding:7px 10px;color:#4a5b5b;font-size:11px;line-height:1.4;box-shadow:0 2px 8px #102f3215}
 .track-map-shell .leaflet-interactive[role=button]:focus-visible,.rwp-sample-marker:focus-visible,.rwp-gauge-marker:focus-visible{outline:3px solid #d29119;outline-offset:4px}
 @media(max-width:650px){.rwp-subdivision-label{font-size:11px}.rwp-subdivision-label.is-active{font-size:12px}.track-map-shell .rwp-value-tooltip{padding:4px 6px}.rwp-sample-value{font-size:11px}.rwp-map-status{bottom:35px;right:54px;font-size:10px}.track-map-shell .leaflet-control-attribution{font-size:8px!important;line-height:1.35}}
+
+.rwp-milepost-marker {background:white;border:1px solid #655035;border-radius:3px;color:#483519;text-align:center;font-size:11px;font-weight:700;line-height:22px;box-shadow:0 1px 3px #0003}
+.rwp-temperature-marker {background:#fff4e4;border:2px solid #a75b20;border-radius:50%;color:#673613;line-height:26px;text-align:center;font-weight:700;font-size:12px}

@@ -41,22 +41,8 @@ def main():
         previous=json.loads((DATA/'weather.json').read_text())
         points={**previous.get('points',{}),**points}
     (DATA/'weather.json').write_text(json.dumps(dict(fetchedAt=now,source='Open-Meteo Forecast API; modelled conditions and forecasts, not station observations',points=points,errors=errors),separators=(',',':'))+'\n')
-    stations=[('05MA011','Birch Creek near Elfros',51.747,-103.87364),('05KB003','Carrot River near Armley',53.136391,-104.020828)]
-    gauges=[]
-    for station,name,lat,lon in stations:
-        url='https://api.weather.gc.ca/collections/hydrometric-realtime/items?'+urlencode(dict(STATION_NUMBER=station,limit=25,sortby='-DATETIME'))
-        g=dict(station=station,name=name,lat=lat,lon=lon,time=None,levelM=None,dischargeM3s=None,previousTime=None,previousLevelM=None,sourceUrl=url)
-        try:
-            data=get_json(url)['features']
-            if not data: raise ValueError('No current gauge observations')
-            latest=data[0]['properties'];g['lat']=data[0]['geometry']['coordinates'][1];g['lon']=data[0]['geometry']['coordinates'][0]
-            g.update(time=latest['DATETIME'],levelM=latest.get('LEVEL'),dischargeM3s=latest.get('DISCHARGE'))
-            if len(data)>1:
-                old=data[-1]['properties'];g.update(previousTime=old['DATETIME'],previousLevelM=old.get('LEVEL'))
-        except Exception as exc: g['error']=str(exc)
-        gauges.append(g)
-    (DATA/'gauges.json').write_text(json.dumps(dict(fetchedAt=now,gauges=gauges),indent=2)+'\n')
-    print(f'Weather: {len(points)}/{len(samples)} samples; {len(errors)} batch errors. Gauges: {sum(g["time"] is not None for g in gauges)}/2.')
+    # Provider-aware gauge acquisition is separate; never replace the corridor catalogue.
+    print(f'Weather: {len(points)}/{len(samples)} samples; {len(errors)} batch errors.')
     if errors: raise RuntimeError('Partial weather refresh; errors retained in snapshot')
 
 if __name__=='__main__':main()

@@ -36,5 +36,50 @@ for g in gauges['gauges']:
     require(numeric(g['levelM']) and numeric(g['dischargeM3s']),'Invalid gauge quantity')
     if g['time']:time(g['time'])
     else:require(g['levelM'] is None and g['dischargeM3s'] is None,'Undated gauge values')
+gauge_ids={g['station'] for g in gauges['gauges']}
+require(len(gauge_ids)==len(gauges['gauges']),'Duplicate gauge source identities')
+coverage=json.loads((data/'water-coverage.json').read_text())
+require(gauge_ids=={a['station'] for a in coverage['archives']},'Gauge/archive manifest mismatch')
+for g in gauges['gauges']:
+    require(g.get('historyPath')==f"data/history/{g['station']}.json",'Unexpected history download path')
+    history=json.loads((data/'history'/f"{g['station']}.json").read_text())
+    require(history['station']==g['station'],'Wrong history station')
+    for key,date_key in [('observations','time'),('daily','date')]:
+        rows=history[key];dates=[r[date_key] for r in rows]
+        require(dates==sorted(set(dates)),f'Duplicate/unordered {key}: {g["station"]}')
+        for row in rows:
+            time(row[date_key])
+            require(numeric(row.get('levelM')) and numeric(row.get('dischargeM3s')),f'Invalid history value: {g["station"]}')
+            if row.get('sourceType')=='derived-unit-values':
+                for metric,prefix in [('levelM','level'),('dischargeM3s','discharge')]:
+                    if row.get(metric) is not None:
+                        require('RWP-derived' in row.get(prefix+'Qualifier',''),'Unlabelled derived archive value')
+                        require(not row.get(prefix+'Provenance',{}).get('excludedReasons'),'Excluded archive value became numeric')
+major=json.loads((data/'major-basins.geojson').read_text())
+require(len({f['properties']['id'] for f in major['features']})==len(major['features']),'Duplicate regional basin IDs')
+require(all(f['properties']['kind']=='major-drainage-basin' and f['properties'].get('sourceUrl') for f in major['features']),'Missing regional basin provenance')
 require({f['properties']['StationNum'] for f in basins['features']}=={'05MA011','05KB003'},'Wrong gauge basin polygons')
-print(f'Validated {len(subs)} subdivisions, {len(ids)} weather samples, {len(gauges["gauges"])} gauge records and two gross basins.')
+temperatures=json.loads((data/'temperature-observations.json').read_text())
+require(len({s['id'] for s in temperatures['stations']})==len(temperatures['stations']),'Duplicate observed-temperature station IDs')
+for station in temperatures['stations']:
+    sid=station['id']
+    require(numeric(station['temperatureC']) and numeric(station['lat']) and numeric(station['lon']),'Invalid actual station temperature or coordinate')
+    require(-90 <= station['lat'] <= 90 and -180 <= station['lon'] <= 180,'Observed station outside coordinate bounds')
+    require(station['distanceToRailKm'] <= 75 and station.get('sourceUrl') and station.get('quality'),'Observed station scope/provenance missing')
+    if station['observedAt']:
+        require(time(station['observedAt']).tzinfo is not None,'Observation time lacks timezone')
+    else:
+        require(station['temperatureC'] is None,'Undated temperature observation')
+    if station.get('historyPath'):
+        require(station['historyPath']==f'data/temperature-history/{sid}.json','Unexpected temperature archive path')
+        history=json.loads((data/'temperature-history'/f'{sid}.json').read_text())
+        require(history['stationId']==sid and history['resolution']=='daily','Temperature archive identity/resolution mismatch')
+        dates=[row['date'] for row in history['observations']]
+        require(dates==sorted(set(dates)),f'Duplicate/unordered temperature dates: {sid}')
+        for row in history['observations']:
+            require(history['requestedStart'] <= row['date'] <= history['requestedEnd'],'Temperature day outside requested archive window')
+            for key in ['mean','min','max']:
+                require(numeric(row[key+'TemperatureC']),'Nonfinite daily temperature')
+                if row[key+'Flag']:
+                    require(row[key+'TemperatureC'] is None,'Flagged historical temperature treated as observed')
+print(f'Validated {len(subs)} subdivisions, {len(ids)} weather samples, {len(gauges["gauges"])} gauges with downloadable history, {len(major["features"])} regional basins, two gross gauge basins and {len(temperatures["stations"])} actual temperature stations with daily archives.')
