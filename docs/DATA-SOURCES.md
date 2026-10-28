@@ -30,10 +30,10 @@ The provincial shapefile and secondary timetable pages are not bundled. Their ow
 
 [Open-Meteo Forecast API](https://open-meteo.com/en/docs), https://api.open-meteo.com/v1/forecast
 
-- Hourly total precipitation and **liquid rain separately** (mm), temperature (°C), snow depth (m), snowfall (cm), wind/gusts (km/h), shallow modelled soil temperature/moisture.
+- Hourly total precipitation and **liquid rain + showers separately** (mm), temperature (°C), snow depth (m), snowfall (cm), wind/gusts (km/h), shallow modelled soil temperature/moisture.
 - All requested times use GMT and are interpreted as UTC. The interface displays America/Regina (CST, UTC−6). Alberta locations also use this common display timezone; this is labelled explicitly.
 - Current conditions are modelled, not measured rail-side observations. API grid coordinates may differ from requested track samples. No model issue time is provided in this acquisition; `fetchedAt` is retrieval time.
-- The 24-hour summary starts at the current clock hour. Totals include that hour's forecast interval. Forecast-hour slider affects the map; headline cards summarize the current point/current 24-hour window.
+- The selected forecast hour drives map and dashboard values through +72h. Following24h accumulation windows use interval-ending labels t+1 through t+24; the interval before the selected time is excluded.
 - Missing or incomplete 24-hour series do not become zero. Data older than six hours are flagged stale; three hours is the browser refresh threshold. These are display rules, not skill guarantees.
 - Attribution and data licence: https://open-meteo.com/en/licence (CC BY 4.0). Free API access is for non-commercial use under https://open-meteo.com/en/terms . A commercial service needs the appropriate access arrangement.
 
@@ -43,7 +43,7 @@ Environment and Climate Change Canada / Water Survey of Canada, [GeoMet hydromet
 
 - Stations: **05MA011**, Birch Creek near Elfros; **05KB003**, Carrot River near Armley.
 - Preserve observation time, level (m relative to the station's gauge datum) and discharge (m³/s). Levels at different gauges are not directly comparable.
-- Fetch the latest 25 returned observations; the change shown is between the latest and oldest returned observation, with both times visible. No rate or warning threshold is inferred.
+- Native recent observations and compatible historical daily means feed the gauge chart. Historical source coverage, quality symbols and relocation limits are documented in GAUGE-HISTORY.md; no gauge warning threshold is inferred.
 - A station can be active while its API query has no current observations. RWP shows unavailable rather than substituting historical data.
 - Licence: Open Government Licence – Canada.
 
@@ -63,3 +63,7 @@ These are gross gauge drainage areas, not delineated catchments at the railway o
 No authenticated social API or automatic scraper is connected. Added reports stay in browser storage until the user exports them or explicitly sends an AI package. Original links, event/publication timestamps and verification state remain separate. Do not copy bulk social posts/media or restricted-group content into the repository.
 
 Basemap: © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), served by `tile.openstreetmap.org`. Tiles are requested by the visitor's browser; no bulk download, prefetch or offline cache is performed. See the [tile usage policy](https://operations.osmfoundation.org/policies/tiles/); a larger production deployment should arrange a suitable tile service. The application does not redistribute a downloaded OSM database. The first CARTO test returned API-key-required watermark tiles and was replaced before release handoff.
+
+## Map-first layer and history extensions
+
+See [MAP-LAYER-DATA.md](MAP-LAYER-DATA.md) for ECCC RDPS, radar and CaLDAS WMS/WCS products, pinned times, actual basin sampling and browser refresh. See [GAUGE-HISTORY.md](GAUGE-HISTORY.md) for dated ECCC/HYDAT archives and station continuity. Browser point acquisition requests five calendar days, including precipitation type, showers, probability and wind direction.

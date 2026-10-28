@@ -25,9 +25,19 @@ it('returns unknown for an incomplete rain window rather than zero-filling', () 
   expect(s.validHours).toBe(23);
 });
 it('keeps liquid rainfall separate from total precipitation including snow',()=>{
-  const snowy=structuredClone(point);snowy.hourly.rain=Array(48).fill(0.25);
+  const snowy=structuredClone(point);snowy.hourly.rain=Array(48).fill(0.25);snowy.hourly.showers=Array(48).fill(0);
   expect(summarizeWeather(snowy,now).liquidRain24Mm).toBe(6);
   expect(summarizeWeather(snowy,now).rain24Mm).toBe(24);
+});
+it('excludes the preceding hour and includes the hour ending the next24h rain window',()=>{
+  const p=structuredClone(point);p.hourly.precipitation[12]=99;p.hourly.precipitation[36]=5;
+  expect(summarizeWeather(p,now).rain24Mm).toBe(28);
+});
+it('includes convective showers in liquid rainfall without treating missing showers as zero',()=>{
+  const p=structuredClone(point);p.hourly.rain=Array(48).fill(0.25);p.hourly.showers=Array(48).fill(0.5);
+  expect(summarizeWeather(p,now).liquidRain24Mm).toBe(18);
+  delete p.hourly.showers;
+  expect(summarizeWeather(p,now).liquidRain24Mm).toBeNull();
 });
 it('marks data older than six hours stale and refuses past forecast windows', () => {
   expect(summarizeWeather(point,new Date('2026-10-27T19:00Z')).stale).toBe(true);

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import gateway, { type Env } from '../worker/ai-gateway';
-const env:Env={OPENAI_API_KEY:'',ALLOWED_ORIGIN:'https://orgonag.github.io',AI_RATE_LIMITER:{limit:async()=>({success:true})}};
+const env:Env={OPENAI_API_KEY:'',OPENAI_MODEL:'gpt-6-astra',ALLOWED_ORIGIN:'https://orgonag.github.io',AI_RATE_LIMITER:{limit:async()=>({success:true})}};
 it('refuses calls from a disallowed website before invoking AI',async()=>{
  const r=await gateway.fetch(new Request('https://gateway.example',{method:'POST',headers:{Origin:'https://other.example','Content-Type':'application/json'},body:'{}'}),env);
  expect(r.status).toBe(403);

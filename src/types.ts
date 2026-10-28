@@ -20,7 +20,8 @@ export interface ForecastPoint {
   sampleId: string; latitude: number; longitude: number; fetchedAt: string;
   current?: { time: string; temperature_2m: number | null; precipitation: number | null; weather_code: number | null; wind_speed_10m: number | null; wind_gusts_10m: number | null };
   hourly: {
-    time: string[]; temperature_2m: (number | null)[]; precipitation: (number | null)[]; rain?: (number | null)[];
+    time: string[]; temperature_2m: (number | null)[]; precipitation: (number | null)[]; rain?: (number | null)[];showers?: (number|null)[];
+    weather_code?: (number|null)[];wind_direction_10m?: (number|null)[];precipitation_probability?: (number|null)[];
     wind_speed_10m: (number | null)[]; wind_gusts_10m: (number | null)[];
     snow_depth: (number | null)[]; snowfall?: (number | null)[];
     soil_temperature_0cm?: (number | null)[]; soil_moisture_0_to_1cm?: (number | null)[];

@@ -1,0 +1,30 @@
+{
+  "fetchedAt": "2026-10-28T02:50:36Z",
+  "basins": [
+    {
+      "station": "05KB003",
+      "name": "CARROT RIVER NEAR ARMLEY",
+      "time": "2026-10-27T18:00:00Z",
+      "sweMm": 0.001146367686670754,
+      "snowDepthCm": 0.0012192181476217267,
+      "seasonalMeanMm": null,
+      "coverageFraction": 1.0,
+      "sampleCount": 434,
+      "method": "CaLDAS-NSRPS 2.5 km model land-surface analysis; nearest-neighbour WCS geographic extraction (41×26 output pixels, 0.044435° longitude × 0.033952° latitude). Pixel centers clipped to original June 2024 gross basin polygon, including holes; cos(latitude) area-weighted mean of 434/434 valid inside pixels. Coverage is valid weighted sampled area; boundary cells are approximated by centers. Zero is numeric zero; nodata/negative/nonfinite/≥1e20 pixels excluded. This is a model estimate, not a measured basin survey; no seasonal normal supplied. Optional snow depth independently averaged from CaLDAS-NSRPS_2.5km_SnowDepth at the same analysis time (434/434 valid output pixels); metres converted to centimetres.",
+      "sourceUrl": "https://geo.weather.gc.ca/geomet?service=WCS&version=2.0.1&request=GetCoverage&coverageid=CaLDAS-NSRPS_2.5km_SnowWaterEquiv&format=image%2Ftiff&time=2026-10-27T18%3A00%3A00Z&dim_reference_time=2026-10-27T18%3A00%3A00Z&subset=lat%2852.39502%2C53.27776%29&subset=long%28-105.81856%2C-103.99672%29&interpolation=nearest"
+    },
+    {
+      "station": "05MA011",
+      "name": "BIRCH CREEK NEAR ELFROS",
+      "time": "2026-10-27T18:00:00Z",
+      "sweMm": 0.0,
+      "snowDepthCm": 0.0,
+      "seasonalMeanMm": null,
+      "coverageFraction": 1.0,
+      "sampleCount": 100,
+      "method": "CaLDAS-NSRPS 2.5 km model land-surface analysis; nearest-neighbour WCS geographic extraction (13×14 output pixels, 0.043518° longitude × 0.033966° latitude). Pixel centers clipped to original June 2024 gross basin polygon, including holes; cos(latitude) area-weighted mean of 100/100 valid inside pixels. Coverage is valid weighted sampled area; boundary cells are approximated by centers. Zero is numeric zero; nodata/negative/nonfinite/≥1e20 pixels excluded. This is a model estimate, not a measured basin survey; no seasonal normal supplied. Optional snow depth independently averaged from CaLDAS-NSRPS_2.5km_SnowDepth at the same analysis time (100/100 valid output pixels); metres converted to centimetres.",
+      "sourceUrl": "https://geo.weather.gc.ca/geomet?service=WCS&version=2.0.1&request=GetCoverage&coverageid=CaLDAS-NSRPS_2.5km_SnowWaterEquiv&format=image%2Ftiff&time=2026-10-27T18%3A00%3A00Z&dim_reference_time=2026-10-27T18%3A00%3A00Z&subset=lat%2851.27524%2C51.75076%29&subset=long%28-104.3532%2C-103.78746%29&interpolation=nearest"
+    }
+  ],
+  "errors": []
+}

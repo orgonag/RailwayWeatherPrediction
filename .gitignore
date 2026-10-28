@@ -5,6 +5,7 @@ dist/
 !.env.example
 .cache/
 .superpowers/
+.worktrees/
 *.tsbuildinfo
 playwright-report/
 test-results/

@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 out=root/'public/docs';out.mkdir(parents=True,exist_ok=True)
-for name in ['DATA-SOURCES.md','METHODS.md','RESEARCH.md','ROADMAP.md','AI.md']:
+for name in ['DATA-SOURCES.md','METHODS.md','RESEARCH.md','ROADMAP.md','AI.md','MODEL-EXTENSIONS.md','MAP-LAYER-DATA.md','GAUGE-HISTORY.md']:
     shutil.copy2(root/'docs'/name,out/name)
 seen=set();notices=[]
 def visit(name):

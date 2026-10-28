@@ -4,12 +4,19 @@
   "main": "ai-gateway.ts",
   "compatibility_date": "2026-10-27",
   "vars": {
-    "ALLOWED_ORIGIN": "https://orgonag.github.io",
-    "OPENAI_MODEL": "gpt-4.1-mini"
+    "ALLOWED_ORIGIN": "https://railway-weather-prediction.shokti.chatgpt.site",
+    "OPENAI_MODEL": "gpt-6-astra",
+    "OPENAI_REASONING_EFFORT": "high",
+    "OPENAI_MAX_OUTPUT_TOKENS": "25000"
   },
-  "ratelimits": [{
-    "name": "AI_RATE_LIMITER",
-    "namespace_id": "1001",
-    "simple": { "limit": 5, "period": 60 }
-  }]
+  "ratelimits": [
+    {
+      "name": "AI_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    }
+  ]
 }
