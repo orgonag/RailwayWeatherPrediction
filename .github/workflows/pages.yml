@@ -29,14 +29,16 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: python -m unittest discover -s scripts/tests -v
-      - name: Refresh public weather and gauges
+      - name: Refresh public weather
         run: python scripts/refresh_weather.py
+      - name: Refresh actual station temperatures and bounded daily history
+        run: python scripts/refresh_temperature_observations.py --history
       - name: Refresh public map layers and snowpack
         run: python scripts/refresh_map_layers.py
-      - name: Refresh public gauge history
-        run: python scripts/refresh_hydrology.py
+      - name: Refresh corridor gauges, basins and station history
+        run: python scripts/refresh_water_coverage.py
       - run: npm run data:validate
-      - run: npm run build
+      - run: npm run build:all
         env:
           RWP_BASE_PATH: /RailwayWeatherPrediction/
           VITE_REPOSITORY_URL: https://github.com/orgonag/RailwayWeatherPrediction

@@ -71,3 +71,13 @@ Optional AI uses a server-side gateway; keys stay out of the public frontend and
 - [Optional statistical model extension](docs/MODEL-EXTENSIONS.md)
 
 Code: MIT. Data retain their source licences. Contains information licensed under the Open Government Licence–Canada. Basemap ©OpenStreetMap contributors; point forecasts ©Open-Meteo. Open-Meteo free access is for non-commercial evaluation; commercial operation requires an appropriate access arrangement.
+
+### Map data repairs and historical access
+
+The map now has independently selectable calculated whole-mile references, crossings, bridges, culverts and station records. These are public historical inventories with explicit gaps, not a complete operational inventory. See [railway assets](docs/RAILWAY-ASSETS.md).
+
+Precipitation **Rate** is mm/h at the model validity time. **Period** lets you choose a start and end time and sums complete hourly water-equivalent amounts at the railway forecast dots. The default is 24 hours. Forecast samples are spaced about 32 km along each continuous track chain; they are not observed weather stations.
+
+Observed station temperatures are separately located and dated. Selecting a temperature station exposes its available daily history and public JSON download. Selecting a stream gauge loads that station's native/daily history, with an archive ending-date selector and public download. See [observed temperatures](docs/OBSERVED-TEMPERATURES.md), [water coverage](docs/WATER-COVERAGE.md), and [recovered unit history](docs/UNIT-HISTORY.md). Missing dates remain missing. Historical daily records do not recreate an entire radar/forecast map at an exact past hour.
+
+`npm run build:all` builds the optional server worker before the frontend. Publishing the static Sites app does not deploy the optional AI worker. Run the full test suites and data validation before publication.

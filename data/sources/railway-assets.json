@@ -1,0 +1,212 @@
+{
+  "retrievedAt": "2026-10-28T04:47:18.497275+00:00",
+  "datasetVersion": "nrwn-national-c400fd8d+cantre.0.1.1",
+  "snapshot": {
+    "url": "https://orgonag.github.io/cantre-research/data/nrwn-national-c400fd8d-cantre.0.1.1/snapshot.bin.gz",
+    "sha256": "f139558177e4aa8a1dea248f5e335ab3e788099c5b3b2d6f9d2e50cdc44c68d8"
+  },
+  "assetDetails": {
+    "url": "https://orgonag.github.io/cantre-research/data/nrwn-national-c400fd8d-cantre.0.1.1/asset-details.json.gz",
+    "sha256": "dc148537eca1961fbbc3a895f5d6e640f3c1eb13ac0f07855108f7eabc2fa64c"
+  },
+  "counts": {
+    "bridge": 59,
+    "crossing": 1256,
+    "culvert": 1,
+    "milepost": 1090,
+    "station": 1
+  },
+  "sourceUrl": "https://open.canada.ca/data/en/dataset/ac26807e-a1e8-49fa-87bf-451175a859b8",
+  "scopedMarkerpostAnchorCount": 0,
+  "calibrationExclusions": [
+    {
+      "chainId": "ch_30115bb66eaee4ae",
+      "subdivision": "Wilkie",
+      "startPositionKm": 31.429008,
+      "endPositionKm": 31.60505,
+      "startMp": 80.11,
+      "endMp": 79.95,
+      "geometryDistanceM": 176.042,
+      "mileageDistanceM": 257.495,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_30115bb66eaee4ae",
+      "subdivision": "Wilkie",
+      "startPositionKm": 159.710684,
+      "endPositionKm": 159.76843,
+      "startMp": 0.38,
+      "endMp": 0.37,
+      "geometryDistanceM": 57.746,
+      "mileageDistanceM": 16.093,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_3a3283e8ac9065db",
+      "subdivision": "Kerrobert",
+      "startPositionKm": 49.740139,
+      "endPositionKm": 50.197921,
+      "startMp": 71.5,
+      "endMp": 71.31,
+      "geometryDistanceM": 457.782,
+      "mileageDistanceM": 305.775,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_3b58a97e1114105f",
+      "subdivision": "Hardisty",
+      "startPositionKm": 33.854405,
+      "endPositionKm": 33.992551,
+      "startMp": 110.38,
+      "endMp": 110.27,
+      "geometryDistanceM": 138.146,
+      "mileageDistanceM": 177.028,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_4a40dfa34e58ac96",
+      "subdivision": "Lloydminster",
+      "startPositionKm": 32.873494,
+      "endPositionKm": 33.031378,
+      "startMp": 83.89,
+      "endMp": 83.82,
+      "geometryDistanceM": 157.884,
+      "mileageDistanceM": 112.654,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_635fd1d3aa8f0e77",
+      "subdivision": "Wynyard",
+      "startPositionKm": 107.66987,
+      "endPositionKm": 107.945164,
+      "startMp": 46.8,
+      "endMp": 46.67,
+      "geometryDistanceM": 275.294,
+      "mileageDistanceM": 209.215,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_635fd1d3aa8f0e77",
+      "subdivision": "Wynyard",
+      "startPositionKm": 140.989087,
+      "endPositionKm": 141.09713,
+      "startMp": 26.13,
+      "endMp": 26.09,
+      "geometryDistanceM": 108.043,
+      "mileageDistanceM": 64.374,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_72efebdabd6807f8",
+      "subdivision": "Hardisty",
+      "startPositionKm": 32.616686,
+      "endPositionKm": 33.069392,
+      "startMp": 44.74,
+      "endMp": 44.52,
+      "geometryDistanceM": 452.706,
+      "mileageDistanceM": 354.056,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_808b6b9b6a874207",
+      "subdivision": "Lanigan",
+      "startPositionKm": 161.005171,
+      "endPositionKm": 161.050711,
+      "startMp": 4.26,
+      "endMp": 4.2,
+      "geometryDistanceM": 45.54,
+      "mileageDistanceM": 96.561,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_808b6b9b6a874207",
+      "subdivision": "Lanigan",
+      "startPositionKm": 161.083214,
+      "endPositionKm": 161.127944,
+      "startMp": 4.22,
+      "endMp": 4.17,
+      "geometryDistanceM": 44.73,
+      "mileageDistanceM": 80.467,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_81f6b9cbfa626e2f",
+      "subdivision": "Yarbo",
+      "startPositionKm": 4.275895,
+      "endPositionKm": 4.659963,
+      "startMp": 2.8,
+      "endMp": 3.1,
+      "geometryDistanceM": 384.068,
+      "mileageDistanceM": 482.803,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_81f6b9cbfa626e2f",
+      "subdivision": "Yarbo",
+      "startPositionKm": 24.801944,
+      "endPositionKm": 25.082661,
+      "startMp": 15.55,
+      "endMp": 15.8,
+      "geometryDistanceM": 280.717,
+      "mileageDistanceM": 402.336,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_9824b6b2214cbb50",
+      "subdivision": "Tisdale",
+      "startPositionKm": 29.656238,
+      "endPositionKm": 30.013919,
+      "startMp": 113.27,
+      "endMp": 28.51,
+      "geometryDistanceM": 357.681,
+      "mileageDistanceM": 136407.997,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_9824b6b2214cbb50",
+      "subdivision": "Tisdale",
+      "startPositionKm": 52.048985,
+      "endPositionKm": 52.365892,
+      "startMp": 99.93,
+      "endMp": 99.15,
+      "geometryDistanceM": 316.907,
+      "mileageDistanceM": 1255.288,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_9824b6b2214cbb50",
+      "subdivision": "Tisdale",
+      "startPositionKm": 196.429191,
+      "endPositionKm": 196.88278,
+      "startMp": 9.7,
+      "endMp": 9.34,
+      "geometryDistanceM": 453.589,
+      "mileageDistanceM": 579.364,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_9824b6b2214cbb50",
+      "subdivision": "Tisdale",
+      "startPositionKm": 196.88278,
+      "endPositionKm": 197.666966,
+      "startMp": 9.34,
+      "endMp": 7.97,
+      "geometryDistanceM": 784.186,
+      "mileageDistanceM": 2204.801,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    },
+    {
+      "chainId": "ch_d0d1d6a06917512c",
+      "subdivision": "Kelvington",
+      "startPositionKm": 20.958263,
+      "endPositionKm": 21.278342,
+      "startMp": 13.44,
+      "endMp": 13.05,
+      "geometryDistanceM": 320.079,
+      "mileageDistanceM": 627.644,
+      "reason": "Mileage spacing inconsistent with chain geometry"
+    }
+  ],
+  "calculatedReferenceMethod": "Calculated whole-mile reference points interpolated only inside monotone intervals containing published or Transport Canada anchors. Inconsistent mileage spacing is split using a 15% distance tolerance plus one 0.01-mile source posting step. No extrapolation or joining gaps. These are not surveyed or observed physical mileposts.",
+  "limitations": "Incomplete historical public inventory; missing records do not mean an asset is absent. Only assets positioned on the scoped historical CPR chains are included. Station records are not a complete list of railway operating points."
+}

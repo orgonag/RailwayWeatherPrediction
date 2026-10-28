@@ -10,7 +10,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "data:weather": "python scripts/refresh_weather.py",
-    "data:validate": "python scripts/validate_data.py"
+    "data:validate": "python scripts/validate_data.py",
+    "build:server": "tsc --ignoreConfig worker/ai-gateway.ts --target ES2022 --module ES2022 --moduleResolution bundler --lib ES2022,DOM --skipLibCheck --outDir .cache/worker-build",
+    "build:all": "npm run build:server && npm run build"
   },
   "engines": {
     "node": ">=22.12.0"

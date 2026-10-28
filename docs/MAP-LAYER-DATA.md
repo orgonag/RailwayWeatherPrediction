@@ -1,6 +1,6 @@
 # Map layers and basin snow
 
-The map uses public Environment and Climate Change Canada (ECCC) MSC GeoMet grids. Open-Meteo supplies the independent track-point forecasts; these two model products may disagree. No map field is interpolated from track forecast samples.
+The map uses public Environment and Climate Change Canada (ECCC) MSC GeoMet grids. Open-Meteo supplies the independent track-point forecasts; these two model products may disagree. No weather surface is interpolated from track forecast samples. The Period view shows exact sums at forecast samples only.
 
 Refresh metadata and basin estimates with Python 3.12+ and the standard library:
 
@@ -52,3 +52,15 @@ The tiny nonzero Armley result is an area average of mostly zero pixels, not pre
 Acquisition returned all seven advertised product/style pairs and both basin estimates with no provider errors. Actual `GetMap` requests pinned to the saved run at **2026-10-31 02:00 UTC** returned PNG images for all five forecast modes. Clear/zero-precipitation images may legitimately be transparent. Unit tests cover interval expansion, exact-time gaps and horizon rejection, missing reference metadata, service exceptions, numeric zero versus nodata, polygon holes and weighted missing coverage. The full application validation remains part of release verification.
 
 References: [MSC GeoMet open-data guide](https://eccc-msc.github.io/open-data/msc-geomet/readme_en/), the linked live WMS/WCS metadata, and the request URLs saved with the snapshots. Contains information licensed under the [Open Government Licence – Canada](https://open.canada.ca/en/open-government-licence-canada). ECCC source data retains its own attribution and licence.
+
+## Period amounts and buffered playback
+
+The UI replaces the ambiguous Total control with **Period**. The user chooses start/end timestamps in CST. Each point amount sums the complete source hourly precipitation intervals ending after the start and at or before the end. A missing/negative/nonconsecutive interval makes the period unavailable. The default window is 24 hours. The selection panel separates liquid rain (rain plus showers), snowfall depth (cm) and total water equivalent (mm). These point amounts are not the ECCC run-accumulation raster, which remains documented in the source catalog above but is not displayed as a chosen-period surface.
+
+**Rate** is the instantaneous ECCC model mm/h field. Ordinary dot labels show the separate Open-Meteo amount in the preceding hour (mm), so map rate and dot amount must not be described as identical. Forecast sample positions are about 32 km apart on independent rail chains, with endpoints, not observed weather station locations.
+
+The map holds one completed weather image while one exact requested frame loads, and labels the previous image time during the wait. Playback advances only after completion; errors or a 25-second timeout pause it. Opacity updates do not recreate the layer. WMS tile bounds follow the selected railway extent with approximately 75 km latitude margin and a conservative longitude margin; Alberta track is retained. Grid offscreen buffering is zero and max native tile zoom is 8. This is sequential interactive retrieval, not a bulk or speculative WMS download.
+
+Radar has its own advertised observation-frame slider, separate from future forecast hours. The view limits radar to the recent two hours so the oldest three-hour provider frames are not selected just as they expire. No radar value is projected into future time. A failed frame can be retried with Play; no failed or missing image is silently called a completed frame.
+
+Zero basin SWE has transparent fill. Nonzero fills are latest dated CaLDAS analysis only, independent of the forecast clock. Regional basin outlines do not acquire SWE values merely by being toggled on.

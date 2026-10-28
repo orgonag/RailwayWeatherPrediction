@@ -27,4 +27,9 @@ it('updates the selected-location temperature at +72h and retains a following24h
   expect(screen.getByLabelText('Temperature at selected time').textContent).toContain('72');
   expect(screen.getByLabelText('Next24h total water equivalent').textContent).toContain('24');
   expect(screen.getByLabelText('Next24h liquid rain').textContent).toContain('18');
+  fireEvent.click(screen.getByRole('button',{name:/^Period$/}));
+  const end=new Date(start+(72+12-6)*3600000).toISOString().slice(0,16);
+  fireEvent.change(screen.getByLabelText('Precipitation period end'),{target:{value:end}});
+  expect(screen.getByLabelText('Selected period total water equivalent').textContent).toContain('12');
+  expect(screen.getByLabelText('Selected period liquid rain').textContent).toContain('9');
 });
