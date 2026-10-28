@@ -1,69 +1,70 @@
 # RailwayWeatherPrediction · RWP
 
-Railway weather visibility for **Hardisty → Wilkie → Sutherland → Wynyard → Bredenbury** and connected branches.
+A map-first railway weather workspace for **Hardisty → Wilkie → Sutherland → Wynyard → Bredenbury** and connected branches.
 
-RWP brings track geometry, forecast weather, stream gauges and source-linked community observations into one engineering research workspace.
+**Live site:** https://railway-weather-prediction.shokti.chatgpt.site
+**Source:** https://github.com/orgonag/RailwayWeatherPrediction
 
-**Public site:** https://railway-weather-prediction.shokti.chatgpt.site
+## What works
 
-**Source repository:** https://github.com/orgonag/RailwayWeatherPrediction
+- A full-screen map, slim top bar, desktop selection dashboard and expandable phone dashboard.
+- Clear independent railway chains and calculated-milepost weather locations across 15 subdivisions.
+- Real ECCC precipitation type, intensity and accumulated water maps; temperature, wind gusts and recent radar views.
+- One hourly timeline through +72 hours. Selected-location weather and following-24h totals use the selected time.
+- Independent stream-gauge, basin-boundary, snow-water and public-structure layers.
+- Gauge line graphs for recent observations and compatible historical daily comparisons; separate level/flow and 7-day/30-day/season controls.
+- Actual CaLDAS snow-water estimates clipped to the two established gauge basins, with source time, coverage and method.
+- Configurable browser-local rain, snowfall, gust and air-temperature threshold alerts at the selected time and across the next72 hours. No thresholds are enabled by default.
+- Search, along-the-line weather, local source-linked field reports, water scenarios and optional AI evidence assessments under More tools.
 
-## What works in v0.1
+This supports weather awareness and inspection planning. It is not a validated washout predictor or railway movement authority.
 
-- Interactive public track map: 15 subdivisions, 20 separate historical rail chains, 84 weather samples, optional gross gauge basin and public structure layers.
-- Linear weather view: calculated milepost rows × forecast horizons, with temperature, precipitation and gusts. Unknown mileposts and missing data stay explicit.
-- Current modelled weather and 72-hour forecast files from Open-Meteo, browser refresh and 48-hour map slider. Initial cache is dated; selected-route refresh can retrieve current data.
-- Transparent degree-day snowmelt/runoff scenario: editable area, liquid rain, SWE, positive degree-days, melt factor and runoff coefficient; runoff volume and 24-hour mean flow.
-- ECCC hydrometric readings where available. Birch Creek returned a recent observation in the initial acquisition; Armley returned none and is shown unavailable.
-- Browser-local community/field reports with source URL, separate observed/publication times and verification state.
-- Versioned AI evidence and prompt export, including available route hourly forecasts; optional server-side high-reasoning API gateway with explicitly configured model, reasoning effort and provenance. **Generated assessments require a securely configured and deployed provider connection.** No AI output is simulated.
-- Shared assessment interface for future statistical models. Training remains optional and is not implemented; [extension guidance](docs/MODEL-EXTENSIONS.md) explains data, labels and validation.
+## Data limits that remain visible
 
-This is a research preview for awareness and inspection prioritization. It is not a validated washout prediction system or an operational movement authority. There is no routed hydrograph or culvert-capacity calculation.
+Only **Birch Creek / Elfros (05MA011)** and **Carrot River / Armley (05KB003)** have established gross basin polygons here. They are gauge basins, not verified catchments for individual railway crossings. Point weather is not a basin average.
 
-## Run locally
+The current public archives do not include2025 for these stations. Birch's gauge moved on2025-06-10, causing a documented level step change. Comparison lines remain unavailable where years, quality or continuity do not support them; the app does not invent averages. Armley currently has no real-time observations. Explicit archive views show dated historical records.
 
-Node **22.12+** and Python **3.12+**:
+Basin snow-water estimates use an actual model analysis. Seasonal snow baselines and corresponding above-normal alerts are not yet available. Snow depth and snow water equivalent are separate fields.
 
-```sh
+Precipitation map totals are water equivalent **since the displayed forecast run**, not automatically a rolling24h amount. Location-dashboard totals are separately calculated for the next24h. Radar is recent observations; future weather uses forecast products. Forecast maps and point values come from different models/grids and identify their sources.
+
+## Run and check
+
+Node24+ and Python3.12+:
+
+~~~sh
 npm ci
 npm run dev
-```
-
-```sh
 npm test
 python -m unittest discover -s scripts/tests -v
 npm run data:validate
 npm run build
-```
+~~~
 
-Refresh public feeds with `npm run data:weather`. Rebuild the rail extract with `python scripts/build_network.py` (downloads the checksum-verified CANTRE national snapshot). No keys are needed for the public data feeds. Open-Meteo's free endpoint is for non-commercial evaluation; revisit its service terms before commercial operation.
+Refresh bundled public data:
 
-## Deploy
+~~~sh
+python scripts/refresh_weather.py
+python scripts/refresh_map_layers.py
+python scripts/refresh_hydrology.py
+~~~
 
-GitHub Pages workflow: `.github/workflows/pages.yml`. In repository **Settings → Pages → Build and deployment → Source**, select **GitHub Actions**. Push to `main` or run **Build and publish RWP** from the Actions tab to deploy. The repository and complete source are public; the separate public site above is already available. Pages activation is an account setting and must be completed before its workflow can publish.
+Browser weather metadata, selected-route weather, selected-gauge observations and basin SWE can refresh independently. Every source retains its actual timestamp; failed refreshes retain clearly dated data.
 
-The Pages workflow refreshes weather/gauges on deployment and every three hours, then builds and deploys. Scheduled Actions can be delayed and may be disabled by GitHub after inactivity. The site always shows source timestamps and can refresh a selected subdivision in the browser. The separate Sites publication uses the same static build; scheduled GitHub deployments do not update that independent host automatically.
+## Hosting and AI
 
-AI setup: [docs/AI.md](docs/AI.md). Never place an API key in a `VITE_` variable, commit, issue or browser bundle.
+The live Site above is independent of GitHub Pages. The repository workflow always checks/builds the project; optional Pages publication requires Pages activation and repository variable RWP_PAGES_ENABLED=true. Scheduled GitHub builds do not republish the independent Site.
 
-## Project map
+Optional AI uses a server-side gateway; keys stay out of the public frontend and repository. The gateway is deployed, but no provider key or real model response is configured or verified. See [secure model setup](docs/AI.md). The map and all public-data tools work without a model key.
 
-| Path | Purpose |
-| --- | --- |
-| `src/components/TrackMap.tsx` | Map and weather samples |
-| `src/components/LinearWeather.tsx` | Forecast along a subdivision |
-| `src/lib/analysis.ts` | Explicit scenario math and evidence prompt |
-| `src/components/Observations.tsx` | Local source-linked reports |
-| `worker/` | Optional server-side AI gateway |
-| `scripts/` | Public-data preparation and validation |
-| `research/` | Curated Birch/Tisdale evidence and geographic scope |
-| `docs/` | Sources, methods, design, plan and next steps |
+## Sources and methods
 
-## Coverage and next steps
+- [Data sources](docs/DATA-SOURCES.md)
+- [Map layers and basin snow](docs/MAP-LAYER-DATA.md)
+- [Gauge records and comparison rules](docs/GAUGE-HISTORY.md)
+- [Threshold and scenario methods](docs/METHODS.md)
+- [Historical event research](docs/RESEARCH.md)
+- [Optional statistical model extension](docs/MODEL-EXTENSIONS.md)
 
-Core: Hardisty, Wilkie, Sutherland, Wynyard. Branch inventory: Lloydminster, Reford, Macklin, Kerrobert, Tisdale, Kelvington, Melfort, Lanigan, Bulyea, White Fox and Yarbo. Industrial spurs remain in the inventory sweep. Historical geometry does not establish current operators or active limits.
-
-Next: verify asset identifiers and active branch limits; delineate asset catchments; add catchment-averaged weather/SWE, historical replay, permitted original social feeds and connected AI. See [the roadmap](docs/ROADMAP.md), [data sources](docs/DATA-SOURCES.md), [methods](docs/METHODS.md) and [research findings](docs/RESEARCH.md).
-
-Code: MIT. Each dataset remains under its source licence. **Contains information licensed under the Open Government Licence – Canada.**
+Code: MIT. Data retain their source licences. Contains information licensed under the Open Government Licence–Canada. Basemap ©OpenStreetMap contributors; point forecasts ©Open-Meteo. Open-Meteo free access is for non-commercial evaluation; commercial operation requires an appropriate access arrangement.

@@ -26,6 +26,7 @@ it('supplies UTC interpretation and route identity with otherwise offsetless raw
   });
   render(<App/>);
   await screen.findByLabelText('Subdivision');
+  fireEvent.click(screen.getByRole('button',{name:'More tools'}));
   fireEvent.click(screen.getByRole('button',{name:'AI briefing'}));
   fireEvent.click(screen.getByRole('checkbox'));
   fireEvent.click(screen.getByRole('button',{name:'Generate AI assessment'}));

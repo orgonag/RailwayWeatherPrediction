@@ -1,6 +1,6 @@
 # Optional high-reasoning model connection
 
-RWP assembles and exports evidence without an AI key. A configured server-side gateway can send it to a reasoning model for an assessment. **The provider connection is prepared in source; no real key, deployed AI gateway or end-to-end provider result is claimed.**
+RWP assembles and exports evidence without an AI key. A configured server-side gateway can send it to a reasoning model for an assessment. **A gateway is deployed at https://rwp-ai-gateway.orgonag.workers.dev. No provider key or successful model response is configured or verified.**
 
 ## Where the API key goes
 
@@ -37,3 +37,7 @@ Successful output includes the provider-reported model, requested effort, genera
 Tests intercept only the external provider transport and verify the real gateway's request, versioned evidence, output provenance and failure handling. They do not establish model quality, authorization for a particular model or live provider availability. Historical/statistical extension: [MODEL-EXTENSIONS.md](MODEL-EXTENSIONS.md).
 
 Primary references: [OpenAI reasoning guide](https://developers.openai.com/api/docs/guides/reasoning), [model documentation](https://developers.openai.com/api/docs/models/gpt-6-astra), [Cloudflare secrets](https://developers.cloudflare.com/workers/configuration/secrets/).
+
+## Existing RWP gateway
+
+The owner can add OPENAI_API_KEY as a Secret in [Cloudflare Worker settings](https://dash.cloudflare.com/5477ada005a774f093e25642d51f5819/workers/services/view/rwp-ai-gateway/production/settings). The public Site build uses that gateway URL. Its model and effort are server settings. Test one real response after secure key configuration; no API key is required for the map.

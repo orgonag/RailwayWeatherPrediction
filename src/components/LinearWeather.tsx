@@ -7,7 +7,7 @@ export default function LinearWeather({network,subdivision,weather,now,selected,
   const [metric,setMetric]=useState<Metric>('temperature');
   const samples=network.samples.filter(s=>s.subdivision===subdivision).sort((a,b)=>(a.mp??Infinity)-(b.mp??Infinity));
   const unit=metric==='temperature'?'°C':metric==='rain'?'mm/h':'km/h gusts';
-  const hours=[0,3,6,9,12,18,24,36,48];
+  const hours=[0,3,6,9,12,18,24,36,48,60,72];
   return <div className="linear-view">
     <div className="section-heading"><div><span className="eyebrow">ALONG THE SUBDIVISION</span><h2>{subdivision} <span className="muted">/ linear weather</span></h2></div><select aria-label="Linear weather metric" value={metric} onChange={e=>setMetric(e.target.value as Metric)}><option value="temperature">Temperature · °C</option><option value="rain">Precipitation · mm/h</option><option value="wind">Wind gusts · km/h</option></select></div>
     <p className="note">Read down the calculated mileposts and across the forecast. Samples are about 32 km apart; each cell is a model grid forecast. Chain gaps and uncalibrated positions remain separate.</p>

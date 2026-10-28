@@ -14,11 +14,15 @@ export function summarizeWeather(point: ForecastPoint | undefined, now: Date): W
   const times=hours?.time?.slice(start,start+24)??[];
   const first=times[0]?utcTime(times[0]):NaN;
   const hourlyWindow=start>=0&&times.length===24&&times.every((t,i)=>utcTime(t)===first+i*3600000);
-  const window = (values?: (number | null)[]) => start < 0 || !hourlyWindow || !Array.isArray(values) || values.length!==hours?.time?.length ? [] : values.slice(start, start + 24);
+  const window = (values?: (number | null)[],interval=false) => {
+    const i=start+(interval?1:0),t=hours?.time?.slice(i,i+24)??[];
+    return start<0||!hourlyWindow||t.length!==24||!t.every((v,j)=>utcTime(v)===first+(j+(interval?1:0))*3600000)||!Array.isArray(values)||values.length!==hours?.time?.length?[]:values.slice(i,i+24);
+  };
   const valid = (values: (number | null)[]) => values.filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
   const complete = (values: (number | null)[]) => values.length === 24 && valid(values).length === 24;
-  const rain = window(hours?.precipitation), liquidRain = window(hours?.rain), temps = window(hours?.temperature_2m);
-  const winds = window(hours?.wind_speed_10m), gusts = window(hours?.wind_gusts_10m);
+  const rain = window(hours?.precipitation,true),liquid=window(hours?.rain,true),showers=window(hours?.showers,true),temps=window(hours?.temperature_2m);
+  const liquidRain=complete(liquid)&&complete(showers)?liquid.map((v,i)=>v!+showers[i]!):[];
+  const winds=window(hours?.wind_speed_10m),gusts=window(hours?.wind_gusts_10m,true);
   const fetched = point ? utcTime(point.fetchedAt) : NaN;
   // Six hours is a display freshness rule, not a forecast skill threshold.
   return {

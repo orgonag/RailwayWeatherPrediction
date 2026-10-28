@@ -1,61 +1,210 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Activity, ArrowRight, CloudSun, Droplets, ExternalLink, GitBranch, Layers, List, Map as MapIcon, Maximize2, RefreshCw, Route, Snowflake, Sparkles, Thermometer, Wind } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Bell, ChevronLeft, ChevronRight, CloudRain, ExternalLink, Layers, List, MapPin, Maximize2, MoreHorizontal, Pause, Play, RefreshCw, Route, Search, SlidersHorizontal, X } from 'lucide-react';
 import type { FeatureCollection } from 'geojson';
-import type { GaugeSnapshot, Metric, Network, Observation, Sample, ScenarioInput, ScenarioResult, WeatherSnapshot } from './types';
+import type { GaugeSnapshot, Network, Observation, Sample, ScenarioInput, ScenarioResult, WeatherSnapshot } from './types';
+import type { BasinSnowSnapshot, HydrologySnapshot, LayerCatalog, LayerVisibility, PrecipitationMode, Selection, WeatherMode } from './map/contracts';
+import { availableLayerTime, productFor, refreshLayerCatalog } from './map/layers';
+import { EMPTY_RULES, evaluateThresholds, futureThresholds, readRules, RULE_INFO, type ThresholdAlert, type ThresholdRules } from './map/alerts';
+import { forecastFresh, hourDate, HOUR } from './map/weather';
+import { refreshGaugeObservations } from './map/gauge-feed';
+import { refreshBasinSnow } from './map/snow-feed';
+import { mergeWeather, newerSnapshot } from './map/feed-state';
+import { fmt, timeLabel } from './lib/presentation';
 import { summarizeWeather } from './lib/weather';
-import { screenWeather } from './lib/analysis';
-import { fmt, metricValue, timeLabel } from './lib/presentation';
 import { refreshForecast } from './lib/feeds';
 import TrackMap from './components/TrackMap';
+import SelectionDashboard from './components/SelectionDashboard';
+import AlertsPanel from './components/AlertsPanel';
 import LinearWeather from './components/LinearWeather';
 import Analysis from './components/Analysis';
 import Observations from './components/Observations';
 import AIBrief from './components/AIBrief';
 
-type View='weather'|'analysis'|'ai';
 const base=import.meta.env.BASE_URL;
-const repository=import.meta.env.VITE_REPOSITORY_URL||'https://github.com/orgonag';
-async function readData<T,>(file:string):Promise<T>{const r=await fetch(`${base}data/${file}`);if(!r.ok)throw new Error(`${file}: HTTP ${r.status}`);return r.json();}
+const repository='https://github.com/orgonag/RailwayWeatherPrediction';
+type Tool='linear'|'ai'|'scenario'|'reports'|'about'|null;
+type Drawer='layers'|'alerts'|null;
+async function readData<T,>(file:string,signal?:AbortSignal):Promise<T>{
+ const response=await fetch(base+'data/'+file,{signal});if(!response.ok)throw new Error(file+' could not load');return response.json();
+}
+function label(sample:Sample){return sample.subdivision+(sample.mp===null?' · location '+fmt(sample.positionKm,0)+' km':' · MP '+fmt(sample.mp));}
+function basinName(name:unknown){return typeof name==='string'?name.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()):'Drainage basin';}
 export default function App(){
-  const [network,setNetwork]=useState<Network|null>(null),[weather,setWeather]=useState<WeatherSnapshot|null>(null),[gauges,setGauges]=useState<GaugeSnapshot|null>(null),[basins,setBasins]=useState<FeatureCollection|null>(null);
-  const [view,setView]=useState<View>('weather'),[layout,setLayout]=useState<'map'|'linear'>('map'),[subdivision,setSubdivision]=useState('Wynyard'),[selected,setSelected]=useState('');
-  const [metric,setMetric]=useState<Metric>('temperature'),[offset,setOffset]=useState(0),[showBasins,setShowBasins]=useState(true),[showAssets,setShowAssets]=useState(false),[fitRequest,setFitRequest]=useState(0);
-  const [now,setNow]=useState(new Date()),[error,setError]=useState(''),[busy,setBusy]=useState(false),[loadError,setLoadError]=useState('');
-  const [observations,setObservations]=useState<Observation[]>(()=>{try{const v=JSON.parse(localStorage.getItem('rwp-reports-v1')||'[]');return Array.isArray(v)?v.filter(o=>o&&typeof o.id==='string'&&typeof o.text==='string'&&/^https?:\/\//i.test(o.sourceUrl)).slice(0,100):[];}catch{return [];}});
-  const [scenario,setScenario]=useState<{input:ScenarioInput;result:ScenarioResult|null}|null>(null);
-  const onScenario=useCallback((input:ScenarioInput,result:ScenarioResult|null)=>setScenario({input,result}),[]);
-  useEffect(()=>{let active=true;readData<Network>('network.json').then(v=>{if(active)setNetwork(v);}).catch(e=>{if(active)setLoadError(e.message);});
-    Promise.allSettled([readData<WeatherSnapshot>('weather.json'),readData<GaugeSnapshot>('gauges.json'),readData<FeatureCollection>('basins.geojson')]).then(([w,g,b])=>{if(!active)return;if(w.status==='fulfilled')setWeather(w.value);else setError('Weather snapshot unavailable. Use Refresh weather to request the current forecast.');if(g.status==='fulfilled')setGauges(g.value);if(b.status==='fulfilled')setBasins(b.value);});
-    const timer=setInterval(()=>setNow(new Date()),60000);return()=>{active=false;clearInterval(timer);};
-  },[]);
-  useEffect(()=>{try{localStorage.setItem('rwp-reports-v1',JSON.stringify(observations));}catch{setError('Browser storage is unavailable. Export added reports before closing.');}},[observations]);
-  const sub=network?.subdivisions.find(s=>s.id===subdivision),samples=useMemo(()=>network?.samples.filter(s=>s.subdivision===subdivision)??[],[network,subdivision]);
-  const sample=samples.find(s=>s.id===selected)??samples.find(s=>s.mp!==null)??samples[0];
-  const point=sample?weather?.points[sample.id]:undefined,summary=summarizeWeather(point,now),flags=screenWeather(summary);
-  const chooseSample=useCallback((s:Sample)=>{setSubdivision(s.subdivision);setSelected(s.id);setFitRequest(0);},[]);
-  const chooseSub=useCallback((name:string)=>{setSubdivision(name);setSelected('');setFitRequest(0);},[]);
-  const refresh=useCallback(async(signal?:AbortSignal)=>{
-    if(!samples.length)return;setBusy(true);setError('');
-    try{const next=await refreshForecast(samples,signal);setWeather(prev=>({...next,points:{...prev?.points,...next.points}}));setNow(new Date());}
-    catch(e){if((e as Error).name!=='AbortError')setError((e as Error).message);}
-    finally{setBusy(false);}
-  },[samples]);
-  const firstFetched=weather?.points[samples[0]?.id]?.fetchedAt;
-  // Refresh a selected route when the static snapshot is absent or older than three hours.
-  useEffect(()=>{if(!network||!weather||!samples.length)return;const p=weather.points[samples[0].id];if(p&&Date.now()-Date.parse(p.fetchedAt)<3*3600000)return;const abort=new AbortController();void refresh(abort.signal);return()=>abort.abort();},[network,samples,firstFetched]);
-  const context:Record<string,unknown>={generatedAt:now.toISOString(),scope:sub,railSource:network?.metadata,selectedSample:sample,routeForecasts:samples.map(s=>({sample:s,forecast:weather?.points[s.id]??null})),forecastTimezone:'UTC',displayTimezone:'America/Regina',forecastHourlyTimeConvention:'Hourly time strings without an offset are UTC (Open-Meteo timezone=GMT).',forecastUnits:{temperature_2m:'C',precipitation:'mm water equivalent',rain:'mm',snow_depth:'m',snowfall:'cm',wind_speed_10m:'km/h',wind_gusts_10m:'km/h'},forecastSemantics:'Hourly accumulations and maximum gusts refer to the preceding hour ending at the labelled time; hourly temperature and snow depth are instantaneous. Current values use their provider-reported time and interval where supplied. Acquisition time is not model issue time.',forecastIssueTime:null,seasonalBaselines:null,statisticalAssessment:null,gaugeSnapshotFetchedAt:gauges?.fetchedAt??null,basinReferences:basins?.features.map(f=>({id:f.id??null,properties:f.properties}))??[],pointForecastSource:'https://open-meteo.com/en/docs',pointForecastFetchedAt:point?.fetchedAt??null,next24h:summary,weatherReviewCues:flags,gauges:gauges?.gauges??[],manualScenario:scenario,observations,gaps:['Asset-specific drainage delineations and current culvert/bridge inventory incomplete.','Gross gauge basins are not asset catchments or proof of active hydraulic connectivity.','No routed flood hydrograph, crossing capacity or calibrated failure model.','No automatic social feed; original source timestamps and locations need review.','Point forecasts are not catchment-averaged meteorology.','Historical social advance warning lead time has not been established.','Multi-year seasonal baselines, basin-averaged SWE and a trained statistical model are not supplied.'],sources:['https://orgonag.github.io/cantre-research/data/manifest.json','https://api.weather.gc.ca/collections/hydrometric-realtime','https://open.canada.ca/data/en/dataset/0c121878-ac23-46f5-95df-eb9960753375']};
-  return <><header className="topbar"><a className="brand" href="#" onClick={e=>{e.preventDefault();setView('weather');}} aria-label="RWP home"><span className="brand-icon"><Route size={24}/></span><span>RWP<small>RAILWAY WEATHER PREDICTION</small></span></a><nav aria-label="Primary navigation"><button className={view==='weather'?'active':''} onClick={()=>setView('weather')}><MapIcon size={16}/>Track & weather</button><button className={view==='analysis'?'active':''} onClick={()=>setView('analysis')}><Activity size={16}/>Deterministic</button><button className={view==='ai'?'active':''} onClick={()=>setView('ai')}><Sparkles size={16}/>AI briefing</button></nav><a className="github-link" href={repository} target="_blank" rel="noreferrer">GitHub <ExternalLink size={14}/></a></header>
-    <main><div className="page-heading"><div><span className="eyebrow">SASKATCHEWAN NORTH LINE + WESTERN EXTENSION</span><h1>{view==='weather'?'Weather, along the railway.':view==='analysis'?'See the conditions. Test the assumptions.':'Make sense of the signals.'}</h1><p>Hardisty <span>→</span> Wilkie <span>→</span> Sutherland <span>→</span> Wynyard <span className="muted">& connected branches</span></p></div><div className="release-tag"><span className="status-dot"/>PUBLIC RESEARCH PREVIEW<small>Current data · transparent methods</small></div></div>
-    {loadError?<div role="alert" className="panel error">Track data could not load: {loadError}. <button onClick={()=>location.reload()}>Retry</button></div>:!network?<div className="loading panel"><RefreshCw className="spin"/>Loading public railway geometry…</div>:<>
-    <div className="context-bar"><label><GitBranch size={17}/><span className="sr-only">Subdivision</span><select aria-label="Subdivision" value={subdivision} onChange={e=>chooseSub(e.target.value)}><optgroup label="Core north line">{network.subdivisions.filter(s=>s.role==='core').map(s=><option key={s.id}>{s.name}</option>)}</optgroup><optgroup label="Connected branches">{network.subdivisions.filter(s=>s.role==='branch').map(s=><option key={s.id}>{s.name}</option>)}</optgroup></select></label><span className="context-extent">{sub?.extent}</span><div className="context-actions"><span className={`freshness ${summary.stale?'stale':''}`}><span className="status-dot"/>{point?`${summary.stale?'Dated':'Fetched'} ${timeLabel(point.fetchedAt)} CST`:'Weather unavailable'}</span><button className="button secondary small" onClick={()=>void refresh()} disabled={busy}><RefreshCw size={14} className={busy?'spin':''}/>{busy?'Refreshing…':'Refresh weather'}</button></div></div>
-    {error&&<div className="error-banner" role="alert">{error}</div>}
-    {view==='weather'&&<><div className="weather-stats"><div><Thermometer/><span>SELECTED POINT · THIS HOUR<strong>{fmt(metricValue(point,'temperature',now))}<small>°C</small></strong><em>{fmt(summary.minTempC)}° to {fmt(summary.maxTempC)}° · next 24h</em></span></div><div><Droplets/><span>PRECIPITATION<strong>{fmt(summary.rain24Mm)}<small>mm</small></strong><em>Next 24 hours · water equivalent</em></span></div><div><Wind/><span>MAX WIND GUST<strong>{fmt(summary.maxGustKmh,0)}<small>km/h</small></strong><em>Next 24 hours · modelled</em></span></div><div><Snowflake/><span>MODELLED SNOW DEPTH<strong>{fmt(summary.snowDepthM===null?null:summary.snowDepthM*100)}<small>cm</small></strong><em>Not snow water equivalent</em></span></div></div>
-    <section className="map-section panel"><div className="map-toolbar"><div className="view-toggle"><button className={layout==='map'?'active':''} onClick={()=>setLayout('map')}><MapIcon size={15}/>Network map</button><button className={layout==='linear'?'active':''} onClick={()=>setLayout('linear')}><List size={15}/>Linear view</button></div><span className="map-data-label"><Layers size={14}/>{network.subdivisions.length} subdivisions · {network.samples.length} weather samples</span></div>
-    {layout==='map'?<div className="map-workspace"><div className="map-container"><TrackMap network={network} weather={weather} subdivision={subdivision} selected={sample?.id??''} metric={metric} offset={offset} now={now} basins={basins} showBasins={showBasins} showAssets={showAssets} onSelect={chooseSample} onSubdivision={chooseSub} fitRequest={fitRequest}/><div className="map-metrics">{(['temperature','rain','wind'] as Metric[]).map(m=><button key={m} className={metric===m?'active':''} onClick={()=>setMetric(m)}>{m==='temperature'?'Temperature':m==='rain'?'Precipitation':'Wind gusts'}</button>)}</div><button className="map-fit" aria-label="Show full railway network" onClick={()=>setFitRequest(v=>v<0?0:-1)}><Maximize2 size={15}/>{fitRequest<0?'Fit subdivision':'Full network'}</button><div className="map-legend"><span className="line-key"/>Selected track<span className="dot" style={{background:'#4e9391'}}/>Forecast sample<span className="basin-key"/>Gross gauge basin</div></div><aside className="sample-panel"><span className="eyebrow">SELECTED FORECAST LOCATION</span><h2>{subdivision}</h2><div className="milepost">{sample?.mp==null?'Uncalibrated':`MP ${fmt(sample.mp)}`}<small>calculated · public geometry</small></div><p className="coordinates">{fmt(sample?.lat,4)}° N · {fmt(sample?.lon==null?null:Math.abs(sample.lon),4)}° W</p><p className="note">Model grid: {point?`${fmt(point.latitude,3)}, ${fmt(point.longitude,3)}`:'unavailable'}<br/>Point forecast near track; not a weather station.</p><div className="sample-cues"><span className="eyebrow">WEATHER REVIEW CUES</span>{flags.length?flags.map(f=><span key={f} className={`cue ${/Stale|Incomplete/.test(f)?'amber':''}`}>{f}</span>):<p className="note">No configured weather cue triggered. This does not establish that the track is safe.</p>}</div><div className="layer-controls"><label><input type="checkbox" checked={showBasins} onChange={e=>setShowBasins(e.target.checked)}/>Gross gauge basins</label><label><input type="checkbox" checked={showAssets} onChange={e=>setShowAssets(e.target.checked)}/>Public bridge / culvert records</label></div><button className="text-button" onClick={()=>setView('analysis')}>Explore water scenario <ArrowRight size={15}/></button></aside></div>:<LinearWeather network={network} subdivision={subdivision} weather={weather} now={now} selected={sample?.id??''} onSelect={chooseSample}/>}
-    {layout==='map'&&<div className="forecast-timeline"><div><CloudSun size={20}/><strong>{offset===0?'This hour':`+${offset} hours`}</strong><span>{timeLabel(new Date(now.getTime()+offset*3600000).toISOString())} CST</span></div><label className="sr-only" htmlFor="forecast-hour">Forecast hour offset</label><input id="forecast-hour" type="range" min="0" max="48" step="1" value={offset} onChange={e=>setOffset(Number(e.target.value))}/><span>+48h</span></div>}</section>
-    <div className="under-map"><p><span className="status-dot"/>Open-Meteo modelled conditions & forecasts · display times CST (Regina)</p><p>Geometry is historical. Calculated mileposts require field confirmation.</p></div><div className="next-step"><div><span className="eyebrow">TURN VISIBILITY INTO CONTEXT</span><h3>What happens when that water reaches the railway?</h3><p>Combine weather with drainage assumptions, gauges and community observations.</p></div><button className="button" onClick={()=>setView('analysis')}>Open deterministic analysis <ArrowRight size={16}/></button></div></>}
-    {view==='analysis'&&<><Analysis summary={summary} gauges={gauges} initialInput={scenario?.input} onScenario={onScenario}/><Observations observations={observations} onChange={setObservations}/><div className="next-step"><div><span className="eyebrow">THE NEXT LAYER</span><h3>Review the evidence as one briefing.</h3></div><button className="button" onClick={()=>setView('ai')}>Open AI workspace <Sparkles size={16}/></button></div></>}
-    {view==='ai'&&<AIBrief context={context}/>}
-    <details className="scope-details"><summary>Coverage, research and data limitations</summary><div className="scope-columns"><div><h3>Accepted corridor & branches</h3><p>{network.subdivisions.map(s=>s.name).join(' · ')}.</p><p>{sub?.notes}</p><p>Industrial spurs remain in the research inventory; the map does not establish a complete or currently operational asset register.</p></div><div><h3>Historical cases</h3><p>Birch Creek near Elfros: railway issues recalled April 22–24. Tisdale / Armley: threat recalled May 4–5 and major damage by May 6. Event year 2026 is a working assumption. Exact times/assets and pre-impact social evidence remain unresolved.</p><a className="source-link" href={`${base}docs/RESEARCH.md`} target="_blank" rel="noreferrer">Read the research record <ExternalLink size={13}/></a></div></div><p className="note">{network.metadata.attribution}. {network.metadata.sourceVintage} Dataset: {network.metadata.version}.</p></details>
-    </>}</main><footer><div className="footer-brand"><Route size={17}/><strong>RWP</strong><span>Railway Weather Prediction</span></div><p>Research & inspection awareness · no operational movement authority</p><a href={`${base}docs/DATA-SOURCES.md`} target="_blank" rel="noreferrer">Sources & methods <ExternalLink size={12}/></a></footer></>;
+ const [network,setNetwork]=useState<Network|null>(null),[weather,setWeather]=useState<WeatherSnapshot|null>(null),[gauges,setGauges]=useState<GaugeSnapshot|null>(null);
+ const [basins,setBasins]=useState<FeatureCollection|null>(null),[catalog,setCatalog]=useState<LayerCatalog|null>(null),[hydrology,setHydrology]=useState<HydrologySnapshot|null>(null),[snowpack,setSnowpack]=useState<BasinSnowSnapshot|null>(null);
+ const [now,setNow]=useState(()=>new Date()),[offset,setOffset]=useState(0),[playing,setPlaying]=useState(false),[subdivision,setSubdivision]=useState(()=>typeof matchMedia!=='undefined'&&matchMedia('(max-width:700px)').matches?'Wynyard':'');
+ const [selection,setSelection]=useState<Selection>(null),[mode,setMode]=useState<WeatherMode|'radar'>('precipitation'),[precipitationMode,setPrecipitationMode]=useState<PrecipitationMode>('type');
+ const [visible,setVisible]=useState<LayerVisibility>({gauges:true,basins:false,snowpack:false,assets:false}),[opacity,setOpacity]=useState(.55),[fit,setFit]=useState(0);
+ const [drawer,setDrawer]=useState<Drawer>(null),[tool,setTool]=useState<Tool>(null),[more,setMore]=useState(false),[search,setSearch]=useState(''),[searchOpen,setSearchOpen]=useState(false);
+ const [busy,setBusy]=useState(false),[error,setError]=useState(''),[loadError,setLoadError]=useState('');
+ const [rules,setRules]=useState<ThresholdRules>(()=>{try{return readRules(JSON.parse(localStorage.getItem('rwp-alert-rules-v1')||'null'));}catch{return {...EMPTY_RULES};}});
+ const [reports,setReports]=useState<Observation[]>(()=>{try{const v=JSON.parse(localStorage.getItem('rwp-reports-v1')||'[]');return Array.isArray(v)?v.filter(o=>o&&typeof o.id==='string'&&typeof o.text==='string'&&/^https?:\/\//i.test(o.sourceUrl)).slice(0,100):[];}catch{return [];}});
+ const [scenario,setScenario]=useState<{input:ScenarioInput;result:ScenarioResult|null}|null>(null);
+ const attemptedRoute=useRef('');
+ const onScenario=useCallback((input:ScenarioInput,result:ScenarioResult|null)=>setScenario({input,result}),[]);
+ useEffect(()=>{
+   const abort=new AbortController();let active=true;
+   readData<Network>('network.json',abort.signal).then(value=>{if(active)setNetwork(value);}).catch(e=>{if(active)setLoadError(e.message);});
+   void Promise.allSettled([
+     readData<WeatherSnapshot>('weather.json',abort.signal).then(value=>{if(active)setWeather(previous=>mergeWeather(previous,value));}),
+     readData<GaugeSnapshot>('gauges.json',abort.signal).then(value=>{if(active)setGauges(previous=>newerSnapshot(previous,value));}),
+     readData<FeatureCollection>('basins.geojson',abort.signal).then(value=>{if(active)setBasins(value);}),
+     readData<LayerCatalog>('map-layers.json',abort.signal).then(value=>{if(active)setCatalog(previous=>newerSnapshot(previous,value));}),
+     readData<HydrologySnapshot>('hydrology.json',abort.signal).then(value=>{if(active)setHydrology(previous=>newerSnapshot(previous,value));}),
+     readData<BasinSnowSnapshot>('basin-snow.json',abort.signal).then(value=>{if(active)setSnowpack(previous=>newerSnapshot(previous,value));})
+   ]);
+   const timer=setInterval(()=>setNow(new Date()),60000);
+   return()=>{active=false;abort.abort();clearInterval(timer);};
+ },[]);
+ useEffect(()=>{
+   // Public metadata refreshes independently of the cached map/data download.
+   const abort=new AbortController();
+   refreshLayerCatalog(abort.signal).then(next=>{
+     if(Object.values(next.products).some(p=>p.status==='available'))setCatalog(previous=>newerSnapshot(previous,next));
+   }).catch(()=>{});return()=>abort.abort();
+ },[]);
+ useEffect(()=>{try{localStorage.setItem('rwp-alert-rules-v1',JSON.stringify(rules));}catch{setError('Alert settings could not be saved in this browser.');}},[rules]);
+ useEffect(()=>{try{localStorage.setItem('rwp-reports-v1',JSON.stringify(reports));}catch{setError('Reports could not be saved. Export them before closing.');}},[reports]);
+ useEffect(()=>{
+   if(selection?.kind!=='gauge'||!hydrology)return;
+   const gauge=hydrology.gauges.find(g=>g.station===selection.id);if(!gauge)return;
+   const abort=new AbortController();
+   refreshGaugeObservations(gauge,abort.signal).then(next=>{
+     if(abort.signal.aborted)return;
+     setHydrology(previous=>previous?{...previous,gauges:previous.gauges.map(g=>g.station===next.station?next:g)}:previous);
+   }).catch(e=>{if(!abort.signal.aborted)setError('Gauge update unavailable; the dated readings are retained. '+(e as Error).message);});
+   return()=>abort.abort();
+ },[selection?.kind,selection?.id,Boolean(hydrology)]);
+ const latestSnowTime=catalog?.products.snowpack?.times.at(-1);
+ useEffect(()=>{
+   const product=catalog?.products.snowpack;
+   if((!visible.snowpack&&selection?.kind!=='basin')||!basins?.features.length||!product||product.status!=='available')return;
+   if(snowpack?.basins.length&&snowpack.basins.every(b=>b.time&&Date.parse(b.time)===Date.parse(latestSnowTime??'')))return;
+   const abort=new AbortController();
+   refreshBasinSnow(basins,product,abort.signal).then(next=>{if(!abort.signal.aborted)setSnowpack(next);}).catch(e=>{if(!abort.signal.aborted)setError('Snowpack update unavailable; the dated analysis is retained. '+(e as Error).message);});
+   return()=>abort.abort();
+ },[visible.snowpack,selection?.kind,basins,latestSnowTime]);
+ useEffect(()=>{
+   if(!playing)return;const timer=setInterval(()=>setOffset(previous=>{if(previous>=72){setPlaying(false);return 72;}return Math.min(72,previous+3);}),1500);
+   return()=>clearInterval(timer);
+ },[playing]);
+ useEffect(()=>{
+   function escape(event:KeyboardEvent){if(event.key==='Escape'){setDrawer(null);setTool(null);setMore(false);setSearchOpen(false);setPlaying(false);}}
+   window.addEventListener('keydown',escape);return()=>window.removeEventListener('keydown',escape);
+ },[]);
+ const anchor=useMemo(()=>hourDate(now),[Math.floor(now.getTime()/HOUR)]);
+ const selectedAt=useMemo(()=>new Date(anchor.getTime()+offset*HOUR),[anchor,offset]);
+ const samples=useMemo(()=>network?.samples.filter(s=>!subdivision||s.subdivision===subdivision)??[],[network,subdivision]);
+ const selectedSample=selection?.kind==='track'?network?.samples.find(s=>s.id===selection.id):undefined;
+ const selectedPoint=selectedSample?weather?.points[selectedSample.id]:undefined;
+ const selectedSummary={...summarizeWeather(selectedPoint,selectedAt),stale:!forecastFresh(selectedPoint,now)};
+ const activeRules=RULE_INFO.filter(rule=>rules[rule.key]!==null).length;
+ const currentChecks=useMemo(()=>evaluateThresholds(samples,weather,rules,selectedAt,now),[samples,weather,rules,selectedAt.getTime(),now.getTime()]);
+ const selectedChecks=useMemo(()=>evaluateThresholds(selectedSample?[selectedSample]:[],weather,rules,selectedAt,now),[selectedSample,weather,rules,selectedAt,now]);
+ const alertSampleIds=useMemo(()=>currentChecks.alerts.map(alert=>alert.sampleId),[currentChecks]);
+ const future=useMemo(()=>futureThresholds(samples,weather,rules,now),[samples,weather,rules,now.getTime()]);
+ const product=mode==='radar'?catalog?.products.radar??null:productFor(catalog,mode,precipitationMode);
+ const layerTime=mode==='radar'?product?.times.at(-1)??null:availableLayerTime(product,selectedAt);
+ const chooseSample=useCallback((sample:Sample)=>{setSelection({kind:'track',id:sample.id});setSubdivision(sample.subdivision);setSearchOpen(false);setSearch('');setTool(null);setDrawer(null);},[]);
+ const chooseGauge=(station:string)=>{setSelection({kind:'gauge',id:station});setSearchOpen(false);setSearch('');setDrawer(null);setTool(null);setVisible(p=>({...p,gauges:true}));};
+ const chooseBasin=(station:string)=>{setSelection({kind:'basin',id:station});setSearchOpen(false);setSearch('');setDrawer(null);setVisible(p=>({...p,basins:true}));};
+ const changeOffset=(value:number)=>{setOffset(value);if(value>0&&mode==='radar'){setMode('precipitation');setPrecipitationMode('rate');}};
+ const chooseAlert=(alert:ThresholdAlert)=>{const sample=network?.samples.find(s=>s.id===alert.sampleId);if(sample){chooseSample(sample);changeOffset(Math.max(0,Math.min(72,Math.round((Date.parse(alert.from)-anchor.getTime())/HOUR))));setPlaying(false);}};
+ const refresh=useCallback(async()=>{
+   if(!network||busy)return;setBusy(true);setError('');
+   try{
+     const selected=network.samples.filter(s=>!subdivision||s.subdivision===subdivision);
+     for(let i=0;i<selected.length;i+=15){const next=await refreshForecast(selected.slice(i,i+15));setWeather(previous=>mergeWeather(previous,next));}
+     const next=await refreshLayerCatalog();if(Object.values(next.products).some(p=>p.status==='available'))setCatalog(previous=>newerSnapshot(previous,next));
+     if(selection?.kind==='gauge'){
+       const gauge=hydrology?.gauges.find(g=>g.station===selection.id);
+       if(gauge){const updated=await refreshGaugeObservations(gauge);setHydrology(previous=>previous?{...previous,gauges:previous.gauges.map(g=>g.station===updated.station?updated:g)}:previous);}
+     }
+     if((visible.snowpack||selection?.kind==='basin')&&basins&&next.products.snowpack?.status==='available')setSnowpack(await refreshBasinSnow(basins,next.products.snowpack));
+     setNow(new Date());
+   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
+ },[network,subdivision,busy,selection,hydrology,basins,visible.snowpack]);
+ useEffect(()=>{
+   if(!network||!subdivision||busy)return;const point=weather?.points[network.samples.find(s=>s.subdivision===subdivision)?.id??''];
+   if(point&&Date.now()-Date.parse(point.fetchedAt)<3*HOUR)return;
+   const attempt=subdivision+':'+(point?.fetchedAt??'missing');if(attemptedRoute.current===attempt)return;attemptedRoute.current=attempt;
+   void refresh();
+   // Selection of a different route triggers at most one automatic refresh.
+ },[network,subdivision,busy,weather?.fetchedAt]);
+ const searchItems=useMemo(()=>{
+   const needle=search.trim().toLowerCase(),matches=(name:string)=>!needle||name.toLowerCase().includes(needle);
+   return [
+     ...(network?.samples.filter(s=>matches(label(s))).map(s=>({key:'s'+s.id,title:label(s),subtitle:'Railway forecast point',select:()=>chooseSample(s)}))??[]),
+     ...(gauges?.gauges.filter(g=>matches(g.name+' '+g.station)).map(g=>({key:'g'+g.station,title:g.name,subtitle:'Stream gauge · '+g.station,select:()=>chooseGauge(g.station)}))??[]),
+     ...(basins?.features.filter(f=>matches(String(f.properties?.NameNom))).map(f=>({key:'b'+f.properties?.StationNum,title:basinName(f.properties?.NameNom),subtitle:'Drainage basin',select:()=>chooseBasin(String(f.properties?.StationNum))}))??[])
+   ].slice(0,30);
+ },[network,gauges,basins,search]);
+ const context:Record<string,unknown>={
+   generatedAt:now.toISOString(),selectedForecastTime:selectedAt.toISOString(),
+   scope:network?.subdivisions.find(s=>s.id===subdivision)??{name:'North line and connected branches'},railSource:network?.metadata,
+   selectedSample,routeForecasts:samples.map(sample=>({sample,forecast:weather?.points[sample.id]??null})),
+   forecastTimezone:'UTC',displayTimezone:'America/Regina',forecastIssueTime:null,
+   forecastUnits:{temperature_2m:'C',precipitation:'mm water equivalent',rain:'mm',showers:'mm',snow_depth:'m',snowfall:'cm',wind_speed_10m:'km/h',wind_gusts_10m:'km/h'},
+   forecastSemantics:'Hourly accumulations and gust maxima refer to the preceding hour; temperature/depth instantaneous. Source acquisition is not forecast issue time.',
+   pointForecastSource:'https://open-meteo.com/en/docs',pointForecastFetchedAt:selectedPoint?.fetchedAt??null,
+   next24h:selectedSummary,gauges:gauges?.gauges??[],gaugeSnapshotFetchedAt:gauges?.fetchedAt??null,
+   basinReferences:basins?.features.map(f=>({properties:f.properties}))??[],basinSnow:snowpack,
+   seasonalBaselines:null,statisticalAssessment:null,thresholdRules:rules,forecastThresholdAlerts:currentChecks.alerts,manualScenario:scenario,observations:reports,
+   gaps:['Gross gauge basins are not individual crossing catchments or proof of flow connection.','Historical gauge comparisons require compatible datum and calendar-year coverage.','No trained failure model, routed hydrograph or automatic social feed.','Point forecasts and gridded ECCC map products have different model/grid support.','Seasonal snowpack baseline unavailable.']
+ };
+ const metric=mode==='temperature'?'temperature':mode==='wind'?'wind':'rain';
+ const currentLabel=mode==='temperature'?'Temperature':mode==='wind'?'Wind gusts':mode==='radar'?'Recent radar':precipitationMode==='type'?'Precipitation type':precipitationMode==='rate'?'Precipitation intensity':'Precipitation total';
+ return <div className={'rwp-app'+(selection?' has-selection':'')}>
+  <header className='map-topbar'>
+   <a className='app-brand' href='#' onClick={event=>{event.preventDefault();setSelection(null);setSubdivision('');setFit(v=>v+1);}} aria-label='RWP home'><span><Route size={22}/></span><strong>RWP<small>Railway weather</small></strong></a>
+   <div className='location-search'><Search size={17}/><input aria-label='Find a location' placeholder='Find a subdivision, milepost or gauge' value={search} onFocus={()=>setSearchOpen(true)} onChange={e=>{setSearch(e.target.value);setSearchOpen(true);}} onKeyDown={e=>{if(e.key==='Enter'&&searchItems[0])searchItems[0].select();}}/>
+    {searchOpen&&<div className='search-results'><div className='search-result-heading'>Locations <button onClick={()=>setSearchOpen(false)} aria-label='Close location search'><X size={15}/></button></div>{searchItems.length?searchItems.map(item=><button key={item.key} onClick={item.select}><MapPin size={16}/><span><strong>{item.title}</strong><small>{item.subtitle}</small></span></button>):<p>No matching location. Try a subdivision name or milepost.</p>}</div>}
+   </div>
+   <label className='subdivision-select'><Route size={15}/><select aria-label='Subdivision' value={subdivision} onChange={e=>{setSubdivision(e.target.value);setSelection(null);setFit(v=>v+1);}}><option value=''>All subdivisions</option>{network?.subdivisions.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
+   <div className='header-actions'>
+    <button className={drawer==='layers'?'tool-button active':'tool-button'} onClick={()=>{setDrawer(drawer==='layers'?null:'layers');setMore(false);}} aria-expanded={drawer==='layers'}><Layers size={18}/><span>Layers</span></button>
+    <button className={drawer==='alerts'?'tool-button active':'tool-button'} onClick={()=>{setDrawer(drawer==='alerts'?null:'alerts');setMore(false);}} aria-expanded={drawer==='alerts'}><Bell size={18}/><span>Alerts</span>{currentChecks.alerts.length>0&&<b>{currentChecks.alerts.length}</b>}</button>
+    <div className='more-menu-wrap'><button className='tool-button icon-only' aria-label='More tools' aria-expanded={more} onClick={()=>setMore(!more)}><MoreHorizontal size={21}/></button>{more&&<nav className='more-menu' aria-label='More tools'><button onClick={()=>{setTool('linear');setMore(false);}}><List size={16}/>Along the line</button><button onClick={()=>{setTool('reports');setMore(false);}}>Field reports</button><button onClick={()=>{setTool('ai');setMore(false);}}>AI briefing</button><button onClick={()=>{setTool('scenario');setMore(false);}}>Water scenario</button><button onClick={()=>{setTool('about');setMore(false);}}>Sources & information</button><a href={repository} target='_blank' rel='noreferrer'>GitHub <ExternalLink size={14}/></a></nav>}</div>
+   </div>
+  </header>
+  <main className='map-workspace-main'>
+   {network?<div className='map-canvas'><TrackMap network={network} weather={weather} subdivision={subdivision} selected={selectedSample?.id??''} metric={metric} offset={offset} now={anchor} basins={basins} showBasins={visible.basins} showAssets={visible.assets} onSelect={chooseSample} onSubdivision={name=>{setSubdivision(name);setSelection(null);}} fitRequest={fit} selection={selection} gauges={gauges?.gauges??[]} showGauges={visible.gauges} snowpack={snowpack} showSnowpack={visible.snowpack} weatherLayer={mode==='none'?null:product} layerTime={layerTime} weatherOpacity={opacity} onGauge={chooseGauge} onBasin={chooseBasin} alertSampleIds={alertSampleIds} onTrackClick={(chainId,lat,lon)=>{
+     const same=network.samples.filter(s=>s.chainId===chainId);const closest=same.sort((a,b)=>((a.lat-lat)**2+((a.lon-lon)*Math.cos(lat*Math.PI/180))**2)-((b.lat-lat)**2+((b.lon-lon)*Math.cos(lat*Math.PI/180))**2))[0];
+     if(closest)chooseSample(closest);else{const chain=network.tracks.features.find(f=>f.properties.id===chainId);if(chain)setSubdivision(chain.properties.subdivision);setSelection(null);}
+   }}/></div>:<div className='map-loading' role='status'><Route size={32}/><strong>{loadError||'Loading the railway…'}</strong>{loadError&&<button onClick={()=>location.reload()}>Retry</button>}</div>}
+   <div className='map-weather-toolbar'><label><CloudRain size={17}/><select aria-label='Weather layer' value={mode} onChange={e=>{setMode(e.target.value as WeatherMode|'radar');if(e.target.value==='radar'){setOffset(0);setPlaying(false);}}}><option value='precipitation'>Precipitation</option><option value='temperature'>Temperature</option><option value='wind'>Wind gusts</option><option value='radar'>Recent radar</option><option value='none'>Track only</option></select></label>
+    {mode==='precipitation'&&<div className='weather-submodes' role='group' aria-label='Precipitation display'>{([['type','Type'],['rate','Intensity'],['accumulation','Total']] as const).map(([value,text])=><button key={value} aria-pressed={precipitationMode===value} className={precipitationMode===value?'active':''} onClick={()=>setPrecipitationMode(value)}>{text}</button>)}</div>}
+   </div>
+   {mode==='precipitation'&&precipitationMode==='accumulation'&&<div className='map-accumulation-period'>Total water since {timeLabel(product?.runTime)} CST · mm</div>}
+   <div className='map-quick-actions'><button aria-label='Fit railway network' title='Fit railway network' onClick={()=>{setSubdivision('');setFit(v=>v+1);}}><Maximize2 size={18}/></button><button aria-label='Refresh weather' title='Refresh weather' disabled={busy} onClick={()=>void refresh()}><RefreshCw size={18} className={busy?'spin':''}/></button></div>
+   {!selection&&!drawer&&!searchOpen&&<div className='map-instruction'><MapPin size={17}/><span>Select a railway location, gauge or basin.</span></div>}
+   {selection&&network&&<aside className='selection-panel' aria-label='Selected location dashboard'><SelectionDashboard key={selection.kind+':'+selection.id} selection={selection} network={network} weather={weather} basins={basins} gauges={gauges?.gauges??[]} hydrology={hydrology} snowpack={snowpack} selectedAt={selectedAt} now={now} alerts={currentChecks.alerts.filter(a=>selection.kind==='track'&&a.sampleId===selection.id)} activeRuleCount={activeRules} incompleteRuleCount={selectedChecks.unavailable} onClose={()=>setSelection(null)} onGauge={chooseGauge} onSample={chooseSample} onAlerts={()=>setDrawer('alerts')}/></aside>}
+   {drawer&&<aside className='map-drawer' aria-label={drawer==='layers'?'Map layers':'Weather alerts'}><div className='drawer-heading'><h2>{drawer==='layers'?'Map layers':'Alerts'}</h2><button aria-label='Close panel' onClick={()=>setDrawer(null)}><X size={20}/></button></div>
+    {drawer==='layers'?<div className='layer-panel-content'><p className='muted'>Choose what the map shows.</p>
+     {([{key:'gauges',title:'Stream gauges',description:'Water readings and history',icon:'gauge'},{key:'basins',title:'Drainage basins',description:'Show basin boundaries',icon:'basin'},{key:'snowpack',title:'Basin snowpack',description:'Water stored in the snow · mm',icon:'snow'},{key:'assets',title:'Bridges & culverts',description:'Available public records',icon:'asset'}] as const).map(item=><label className='layer-toggle' key={item.key}><span className={'layer-symbol '+item.icon}/><span><strong>{item.title}</strong><small>{item.description}</small></span><input type='checkbox' checked={visible[item.key]} onChange={e=>setVisible(previous=>({...previous,[item.key]:e.target.checked}))}/></label>)}
+     <label className='opacity-control'>Weather transparency <span>{Math.round(opacity*100)}%</span><input aria-label='Weather overlay opacity' type='range' min='.15' max='.85' step='.05' value={opacity} onChange={e=>setOpacity(Number(e.target.value))}/></label>
+     {visible.snowpack&&<div className='layer-explanation'><strong>Snowpack water equivalent</strong><p>Colour shows estimated water stored in each basin's snow. This is the latest analysis, separate from the weather forecast.</p><p>Analysis: {timeLabel(snowpack?.basins[0]?.time)} CST</p><div className='snow-scale'/><span>0 <small>mm water</small> 150+</span></div>}
+     <p className='data-note'>Two established gauge basins are available initially: Birch Creek and Carrot River. They are independently selectable.</p>
+     <details className='panel-details'><summary>Layer sources</summary><p>Weather maps: Environment and Climate Change Canada. Point weather: Open-Meteo. Basin outlines: ECCC June2024. Snowpack: CaLDAS analysis. Gauge history: ECCC/WSC. Each selection shows its source times.</p><a href={base+'docs/MAP-LAYER-DATA.md'} target='_blank' rel='noreferrer'>Read layer methods ↗</a></details>
+    </div>:<AlertsPanel current={currentChecks.alerts} future={future} rules={rules} onRules={setRules} onSelect={chooseAlert} unavailable={currentChecks.unavailable}/>}
+   </aside>}
+   {mode!=='none'&&<details className='weather-legend'><summary><span className='legend-weather-dot'/>{currentLabel}<span className='legend-unit'>Key ▾</span></summary>
+    {product?.status==='available'&&layerTime?<><span className='legend-time'>{mode==='radar'?'Observed ':'Forecast '}{timeLabel(layerTime)} CST</span>{product.legendUrl&&<img src={product.legendUrl} alt={currentLabel+' colour scale'}/>}<small>{mode==='precipitation'&&precipitationMode==='accumulation'?'Total since '+timeLabel(product.runTime)+' CST':'Environment Canada'}</small></>:<p className='legend-unavailable'>No layer image available for this time.</p>}
+   </details>}
+   {error&&<div className='map-error' role='alert'>{error}<button onClick={()=>setError('')} aria-label='Dismiss message'><X size={15}/></button></div>}
+  </main>
+  <footer className='forecast-control'>
+   <button className='play-control' onClick={()=>{if(offset===72)setOffset(0);if(mode==='radar')setMode('precipitation');setPlaying(!playing);}} aria-label={playing?'Pause forecast animation':'Play forecast animation'}>{playing?<Pause size={18}/>:<Play size={18}/>}</button>
+   <div className='forecast-date'><strong>{offset===0?'Now':'+'+offset+' hours'}</strong><span>{timeLabel(selectedAt.toISOString())} CST</span></div>
+   <div className='timeline-main'><div className='timeline-labels'><button onClick={()=>{changeOffset(0);setPlaying(false);}}>Now</button>{[24,48,72].map(h=><button key={h} onClick={()=>{changeOffset(h);setPlaying(false);}}>+{h}h</button>)}</div><input aria-label='Forecast hour offset' type='range' min='0' max='72' step='1' value={offset} onChange={e=>{changeOffset(Number(e.target.value));setPlaying(false);}}/></div>
+   <div className='time-step-buttons'><button aria-label='Previous forecast hour' disabled={offset===0} onClick={()=>{changeOffset(offset-1);setPlaying(false);}}><ChevronLeft size={18}/></button><button aria-label='Next forecast hour' disabled={offset===72} onClick={()=>{changeOffset(offset+1);setPlaying(false);}}><ChevronRight size={18}/></button></div>
+  </footer>
+  {tool&&<div className='tool-modal-backdrop' onClick={()=>setTool(null)}><section className='tool-modal' role='dialog' aria-modal='true' aria-label={tool==='linear'?'Along the line':tool==='ai'?'AI briefing':tool==='scenario'?'Water scenario':tool==='reports'?'Field reports':'Sources and information'} onClick={e=>e.stopPropagation()}><div className='tool-modal-heading'><strong>{tool==='linear'?'Along the line':tool==='ai'?'AI briefing':tool==='scenario'?'Water scenario':tool==='reports'?'Field reports':'Sources & information'}</strong><button aria-label='Close tool' onClick={()=>setTool(null)}><X size={22}/></button></div><div className='secondary-tools'>
+   {tool==='linear'&&network&&<LinearWeather network={network} subdivision={subdivision||'Wynyard'} weather={weather} now={anchor} selected={selectedSample?.id??''} onSelect={chooseSample}/>}
+   {tool==='ai'&&<AIBrief context={context}/>}
+   {tool==='scenario'&&<Analysis summary={selectedSummary} gauges={gauges} initialInput={scenario?.input} onScenario={onScenario}/>}
+   {tool==='reports'&&<Observations observations={reports} onChange={setReports}/>}
+   {tool==='about'&&<div className='about-content'><h2>Weather, along the railway.</h2><p>RWP brings together the north line, its connected branches, weather, stream gauges and watershed information.</p><p>Forecasts and custom alerts support awareness and inspection planning. They do not establish safe track conditions or replace railway instructions.</p><h3>Coverage</h3><p>{network?.subdivisions.map(s=>s.name).join(' · ')}</p><h3>Read the sources</h3>{['DATA-SOURCES','METHODS','MAP-LAYER-DATA','GAUGE-HISTORY','RESEARCH','AI','MODEL-EXTENSIONS'].map(name=><a key={name} href={base+'docs/'+name+'.md'} target='_blank' rel='noreferrer'>{name.replaceAll('-',' ').toLowerCase()} <ExternalLink size={14}/></a>)}<p>{network?.metadata.attribution} Historical geometry and calculated mileposts require confirmation.</p><a href={repository} target='_blank' rel='noreferrer'>Project on GitHub <ExternalLink size={14}/></a></div>}
+  </div></section></div>}
+ </div>;
 }

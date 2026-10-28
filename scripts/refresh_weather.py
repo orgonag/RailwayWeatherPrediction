@@ -9,7 +9,7 @@ from urllib.request import urlopen, Request
 
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/'public/data'
-HOURLY='temperature_2m,precipitation,rain,snow_depth,snowfall,wind_speed_10m,wind_gusts_10m,soil_temperature_0cm,soil_moisture_0_to_1cm'
+HOURLY='temperature_2m,precipitation,rain,showers,snow_depth,snowfall,weather_code,precipitation_probability,wind_speed_10m,wind_gusts_10m,wind_direction_10m,soil_temperature_0cm,soil_moisture_0_to_1cm'
 
 def get_json(url):
     for attempt in range(3):
@@ -24,7 +24,7 @@ def main():
     now=datetime.now(timezone.utc).isoformat()
     points={};errors=[]
     def batch(samples):
-        query=urlencode(dict(latitude=','.join(str(s['lat']) for s in samples),longitude=','.join(str(s['lon']) for s in samples),hourly=HOURLY,current='temperature_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m',past_days=1,forecast_days=3,timezone='GMT',wind_speed_unit='kmh'))
+        query=urlencode(dict(latitude=','.join(str(s['lat']) for s in samples),longitude=','.join(str(s['lon']) for s in samples),hourly=HOURLY,current='temperature_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m',past_days=1,forecast_days=5,timezone='GMT',wind_speed_unit='kmh'))
         result=get_json('https://api.open-meteo.com/v1/forecast?'+query)
         result=result if isinstance(result,list) else [result]
         if len(result) != len(samples): raise ValueError('Weather response count mismatch')
