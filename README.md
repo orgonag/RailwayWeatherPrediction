@@ -2,7 +2,10 @@
 
 A map-first railway weather workspace for **Hardisty → Wilkie → Sutherland → Wynyard → Bredenbury** and connected branches.
 
-**Live site:** https://railway-weather-prediction.shokti.chatgpt.site
+**Live preview:** https://railway-weather-prediction.shokti.chatgpt.site
+
+**GitHub Pages destination (pending owner activation):** https://orgonag.github.io/RailwayWeatherPrediction/
+
 **Source:** https://github.com/orgonag/RailwayWeatherPrediction
 
 ## What works
@@ -54,7 +57,7 @@ Browser weather metadata, selected-route weather, selected-gauge observations an
 
 ## Hosting and AI
 
-The live Site above is independent of GitHub Pages. The repository workflow always checks/builds the project; optional Pages publication requires Pages activation and repository variable RWP_PAGES_ENABLED=true. Scheduled GitHub builds do not republish the independent Site.
+GitHub Pages is the intended repository-hosted site. The preview above was used because the connected GitHub integration cannot activate Pages (GitHub returns 403). In [Settings → Pages](https://github.com/orgonag/RailwayWeatherPrediction/settings/pages), choose **GitHub Actions** as the source. The workflow already builds with the correct repository URL prefix, checks Pages availability and publishes when enabled. No extra repository variable is required. Rerun **Build and publish GitHub Pages** after activation; later pushes and scheduled builds publish automatically. Scheduled GitHub builds do not republish the independent preview.
 
 Optional AI uses a server-side gateway; keys stay out of the public frontend and repository. The gateway is deployed, but no provider key or real model response is configured or verified. See [secure model setup](docs/AI.md). The map and all public-data tools work without a model key.
 

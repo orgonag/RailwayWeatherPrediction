@@ -1,4 +1,4 @@
-name: Check and optionally publish RWP
+name: Build and publish GitHub Pages
 on:
   push:
     branches: [main]
@@ -15,6 +15,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      pages_ready: ${{ steps.pages.outcome == 'success' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -36,17 +38,22 @@ jobs:
       - run: npm run data:validate
       - run: npm run build
         env:
-          RWP_BASE_PATH: ${{ vars.RWP_PAGES_ENABLED == 'true' && '/RailwayWeatherPrediction/' || '/' }}
+          RWP_BASE_PATH: /RailwayWeatherPrediction/
           VITE_REPOSITORY_URL: https://github.com/orgonag/RailwayWeatherPrediction
           VITE_AI_ENDPOINT: ${{ vars.VITE_AI_ENDPOINT }}
       - uses: actions/configure-pages@v5
-        if: vars.RWP_PAGES_ENABLED == 'true'
+        id: pages
+        continue-on-error: true
       - uses: actions/upload-pages-artifact@v3
-        if: vars.RWP_PAGES_ENABLED == 'true'
+        if: steps.pages.outcome == 'success'
         with:
           path: dist
+      - name: Pages setup required
+        if: steps.pages.outcome != 'success'
+        run: |
+          echo '::notice::Build verified. Enable Settings > Pages > Source > GitHub Actions, then rerun this workflow. No extra repository variable is required.'
   deploy:
-    if: vars.RWP_PAGES_ENABLED == 'true'
+    if: needs.build.outputs.pages_ready == 'true'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
