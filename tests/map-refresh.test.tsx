@@ -54,7 +54,7 @@ function installCachedFeeds(hydrologyResponse?: Promise<Response>) {
   const files: Record<string, unknown> = {
     'network.json':network,'weather.json':cachedWeather,'map-layers.json':cachedCatalog,
     'gauges.json':{fetchedAt:staleAt,gauges:[{station:'05MA011',name:'Birch Creek near Elfros',lat:51.747,lon:-103.87,time:staleAt,levelM:540.5,dischargeM3s:0,previousTime:null,previousLevelM:null,sourceUrl:hydrology.gauges[0].sourceUrl}]},
-    'basins.geojson':basins,'hydrology.json':hydrology,'basin-snow.json':snow,
+    'basins.geojson':basins,'gauge-catchments.geojson':basins,'hydrology.json':hydrology,'basin-snow.json':snow,
   };
   vi.stubGlobal('fetch', async (input: string | URL | Request) => {
     const url = String(input); const file = url.slice(url.lastIndexOf('/')+1);
@@ -71,8 +71,8 @@ it('retains a newer live catalog and selected forecast when a delayed cached fee
   vi.mocked(refreshForecast).mockResolvedValue(weather([forecastPoint(samples[0],freshAt,12)]));
   render(<App/>);
   const select = await screen.findByRole('button',{name:'Select Wynyard sample'});
-  await waitFor(() => expect(screen.getByLabelText('Forecast map model run').textContent).toBe(liveCatalog.products.precipitationType.runTime));
   fireEvent.click(select);
+  await waitFor(() => expect(screen.getByLabelText('Forecast map model run').textContent).toBe(liveCatalog.products.precipitationType.runTime));
   await waitFor(() => expect(screen.getByLabelText('Temperature at selected time').textContent).toBe('12.0 °C'));
   await waitFor(() => expect((screen.getByRole('button',{name:'Refresh weather'}) as HTMLButtonElement).disabled).toBe(false));
   await act(async () => {slowHydrology.resolve(Response.json(hydrology));});

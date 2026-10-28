@@ -26,4 +26,4 @@
 @media(max-width:650px){.rwp-subdivision-label{font-size:11px}.rwp-subdivision-label.is-active{font-size:12px}.track-map-shell .rwp-value-tooltip{padding:4px 6px}.rwp-sample-value{font-size:11px}.rwp-map-status{bottom:35px;right:54px;font-size:10px}.track-map-shell .leaflet-control-attribution{font-size:8px!important;line-height:1.35}}
 
 .rwp-milepost-marker {background:white;border:1px solid #655035;border-radius:3px;color:#483519;text-align:center;font-size:11px;font-weight:700;line-height:22px;box-shadow:0 1px 3px #0003}
-.rwp-temperature-marker {background:#fff4e4;border:2px solid #a75b20;border-radius:50%;color:#673613;line-height:26px;text-align:center;font-weight:700;font-size:12px}
+.rwp-temperature-marker {background:#fff9ef;border:1.5px solid #a75b20;border-radius:6px;color:#673613;display:grid;place-items:center;height:28px!important;white-space:nowrap;font-weight:700;font-size:11px;box-shadow:0 1px 4px #263e4740}.rwp-temperature-marker:focus-visible{outline:3px solid #d29119;outline-offset:4px}

@@ -59,6 +59,13 @@ major=json.loads((data/'major-basins.geojson').read_text())
 require(len({f['properties']['id'] for f in major['features']})==len(major['features']),'Duplicate regional basin IDs')
 require(all(f['properties']['kind']=='major-drainage-basin' and f['properties'].get('sourceUrl') for f in major['features']),'Missing regional basin provenance')
 require({f['properties']['StationNum'] for f in basins['features']}=={'05MA011','05KB003'},'Wrong gauge basin polygons')
+catchments=json.loads((data/'gauge-catchments.geojson').read_text())
+catchment_ids={f['properties']['StationNum'] for f in catchments['features']}
+require(len(catchment_ids)==len(catchments['features']),'Duplicate gauge catchments')
+require(catchment_ids <= gauge_ids,'Catchment not in gauge catalogue')
+require(catchment_ids | set(catchments['missingStations']) == gauge_ids,'Catchment coverage mismatch')
+require(not catchment_ids & set(catchments['missingStations']),'Mapped catchment marked missing')
+require(all(f['properties'].get('sourceUrl') and f['properties'].get('geometryMethod') for f in catchments['features']),'Missing catchment provenance')
 temperatures=json.loads((data/'temperature-observations.json').read_text())
 require(len({s['id'] for s in temperatures['stations']})==len(temperatures['stations']),'Duplicate observed-temperature station IDs')
 for station in temperatures['stations']:
@@ -82,4 +89,4 @@ for station in temperatures['stations']:
                 require(numeric(row[key+'TemperatureC']),'Nonfinite daily temperature')
                 if row[key+'Flag']:
                     require(row[key+'TemperatureC'] is None,'Flagged historical temperature treated as observed')
-print(f'Validated {len(subs)} subdivisions, {len(ids)} weather samples, {len(gauges["gauges"])} gauges with downloadable history, {len(major["features"])} regional basins, two gross gauge basins and {len(temperatures["stations"])} actual temperature stations with daily archives.')
+print(f'Validated {len(subs)} subdivisions, {len(ids)} weather samples, {len(gauges["gauges"])} gauges with downloadable history, {len(major["features"])} regional basins, {len(catchment_ids)} displayed gauge catchments, two original analysis basins and {len(temperatures["stations"])} actual temperature stations with daily archives.')

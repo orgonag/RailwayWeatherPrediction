@@ -13,7 +13,7 @@ interface Props {
   majorBasins?:FeatureCollection|null;observations?:TemperatureObservation[];rangeHours?:number;
   gauges:Gauge[];hydrology:HydrologySnapshot|null;snowpack:BasinSnowSnapshot|null;selectedAt:Date;now:Date;
   alerts:ThresholdAlert[];activeRuleCount:number;incompleteRuleCount?:number;onClose:()=>void;onGauge:(station:string)=>void;
-  onSample:(sample:Sample)=>void;onAlerts:()=>void;
+  onBasin?:(station:string)=>void;onSample:(sample:Sample)=>void;onAlerts:()=>void;
 }
 const timestamp=(value:string|Date|null|undefined)=>{
   if(!value)return 'Unavailable';
@@ -103,19 +103,20 @@ function GaugeDetails({station,props}:{station:string;props:Props}){
     </dl>
     {(qualifiers?.levelQualifier||qualifiers?.dischargeQualifier)&&<p className="selection-context">{qualifiers.levelQualifier?`Level qualifier: ${qualifiers.levelQualifier}. `:''}{qualifiers.dischargeQualifier?`Flow qualifier: ${qualifiers.dischargeQualifier}.`:''}</p>}
     <p className="selection-context">Gauge readings stay at their observed times as the forecast hour changes.</p>
+    {props.basins?.features.some(f=>f.properties?.StationNum===station)?<button className='selection-gauge-link' onClick={()=>props.onBasin?.(station)}>View gauge catchment</button>:<p className='selection-context'>No matching catchment boundary is available in the bundled public source.</p>}
     {history?<GaugeChart gauge={history} now={props.now}/>:<p className="selection-empty">Gauge history unavailable.</p>}
   </>;
 }
 function BasinDetails({station,props}:{station:string;props:Props}){
   const feature=props.basins?.features.find(basin=>String(basin.properties?.StationNum)===station);
   const regional=props.majorBasins?.features.find(basin=>String(basin.properties?.id)===station);
-  if(regional)return <><p className='selection-context'>Regional drainage basin</p><p>This boundary provides regional drainage context. It is not a verified catchment for a railway crossing, and has no basin snow estimate attached.</p><p>{String(regional.properties?.source??'')}</p>{safeUrl(regional.properties?.sourceUrl)&&<a href={safeUrl(regional.properties?.sourceUrl)} target='_blank' rel='noreferrer'>Boundary source and licence</a>}</>;
+  if(regional)return <><p className='selection-context'>Regional drainage division</p><p>This is a broad drainage region containing many rivers, gauges and smaller catchments. It is not a verified catchment for a railway crossing, and has no basin snow estimate attached.</p><p>{String(regional.properties?.source??'')}</p>{safeUrl(regional.properties?.sourceUrl)&&<a href={safeUrl(regional.properties?.sourceUrl)} target='_blank' rel='noreferrer'>Boundary source and licence</a>}</>;
   const snow=props.snowpack?.basins.find(basin=>basin.station===station);
   const area=typeof feature?.properties?.Area_km2==='number'?feature.properties.Area_km2:null;
   const gauge=props.hydrology?.gauges.find(item=>item.station===station)??props.gauges.find(item=>item.station===station);
   const comparison=snow?.sweMm!=null&&snow?.seasonalMeanMm!=null&&snow.seasonalMeanMm>0?(snow.sweMm/snow.seasonalMeanMm-1)*100:null;
   return <>
-    <p className="selection-context selection-station">Gross gauge basin · {station}</p>
+    <p className="selection-context selection-station">Gross gauge catchment · {station}</p>
     <div className="selection-time"><span>Snow analysis</span><strong>{timestamp(snow?.time)}</strong></div>
     <div className="selection-snow-lead"><span>Snow water equivalent</span><strong>{number(snow?.sweMm,'mm')}</strong></div>
     <p className="selection-context">Water held in the modelled basin snowpack.</p>
@@ -129,7 +130,8 @@ function BasinDetails({station,props}:{station:string;props:Props}){
     {gauge&&<button type="button" className="selection-gauge-link" onClick={()=>props.onGauge(station)}>View gauge · {station}<span>{gauge.name}</span></button>}
     <p className="selection-source-line">{snow?`Analysis ${timestamp(snow.time)}`:'Snow water equivalent unavailable'}</p>
     <details className="selection-details"><summary>Details and sources</summary>
-      <p>This is the gross drainage basin for gauge {station}. It does not establish the drainage area or a flow path to any railway crossing.</p>
+      <p>{String(feature?.properties?.geometryMethod??'Original gross basin boundary.')}</p>
+      <p>This mapped gross catchment is the potential drainage area upstream of gauge {station}. It can overlap the catchment of another gauge on the same river; the areas must not be added together. It does not establish the drainage area or a flow path to any railway crossing.</p>
       <p>{snow?.method??'Basin snow estimates are unavailable.'}</p>
       <p>Valid model coverage: {snow?.coverageFraction==null?'unavailable':`${fmt(snow.coverageFraction*100,0)}%`} · {snow?.sampleCount??0} grid samples. Analysis {timestamp(snow?.time)}. Retrieved {timestamp(props.snowpack?.fetchedAt)}.</p>
       <p>Snow water equivalent and snow depth are separate model fields. No fixed density conversion is applied. Seasonal comparisons require an actual historical baseline.</p>
@@ -168,7 +170,7 @@ export default function SelectionDashboard(props:Props){
   return <div className={`selection-content${expanded?' is-expanded':''}`}>
     <div className="selection-mobile-handle" aria-hidden="true"/>
     <header className="selection-header">
-      <div><p className="selection-kicker">{selection.kind==='track'?'Track weather':selection.kind==='gauge'?'Stream gauge':selection.kind==='asset'?'Rail asset':selection.kind==='observation'?'Observed temperature':'Drainage basin'}</p><h2>{title}</h2>{sample&&<p className="selection-position">{position(sample)}</p>}</div>
+      <div><p className="selection-kicker">{selection.kind==='track'?'Track weather':selection.kind==='gauge'?'Stream gauge':selection.kind==='asset'?'Rail asset':selection.kind==='observation'?'Observed temperature':regional?'Regional drainage division':'Gauge catchment'}</p><h2>{title}</h2>{sample&&<p className="selection-position">{position(sample)}</p>}</div>
       <button type="button" className="selection-close" aria-label="Close selection details" onClick={props.onClose}>×</button>
     </header>
     <button type="button" className="selection-expand" aria-expanded={expanded} onClick={()=>setExpanded(value=>!value)}>{expanded?'Collapse details':'Expand details'}<span aria-hidden="true">{expanded?'⌄':'⌃'}</span></button>

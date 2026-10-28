@@ -92,23 +92,26 @@ it('fits all independent chains when returning to an empty subdivision filter',(
   expect(map.getBounds().contains([51,-104])).toBe(true);
 });
 
-it('respects an explicit cleared selection and keeps overview labels sparse',()=>{
+it('never renders generated forecast dots, even for a selected sample or at close zoom',()=>{
   render(<TrackMap {...props} selection={null}/>);
   expect(document.querySelectorAll('.rwp-sample-marker.is-selected')).toHaveLength(0);
   act(()=>{map.setZoom(6,{animate:false});});
   expect(document.querySelectorAll('.rwp-value-tooltip')).toHaveLength(0);
-  expect(screen.getAllByRole('button',{name:/Wynyard.*milepost|Wynyard.*MP/})).toHaveLength(2);
+  expect(document.querySelectorAll('.rwp-sample-marker')).toHaveLength(0);
+  act(()=>{map.setZoom(12,{animate:false});});
+  expect(document.querySelectorAll('.rwp-sample-marker,.rwp-value-tooltip')).toHaveLength(0);
 });
 
-it('keeps disconnected rail chains independent and provides safe keyboard sample and gauge selection',()=>{
-  const onSelect=vi.fn(),onGauge=vi.fn();
-  render(<TrackMap {...props} onSelect={onSelect} showGauges onGauge={onGauge} gauges={[{station:'05MA011',name:'<img src=x onerror=alert(1)>',lat:51.05,lon:-103.95,time:null,levelM:null,dischargeM3s:null,previousTime:null,previousLevelM:null,sourceUrl:'https://wateroffice.ec.gc.ca'}]}/>);
+it('keeps disconnected rail chains independent and provides safe keyboard thermometer and gauge selection',()=>{
+  const onSelect=vi.fn(),onGauge=vi.fn(),onObservation=vi.fn();
+  render(<TrackMap {...props} onSelect={onSelect} showObservations onObservation={onObservation} observations={[{id:'station',name:'Watrous',lat:51,lon:-104,temperatureC:2.5,observedAt:'2026-10-28T06:00:00Z',provider:'ECCC',source:'SWOB',sourceUrl:'https://weather.gc.ca',quality:'Observed'}]} showGauges onGauge={onGauge} gauges={[{station:'05MA011',name:'<img src=x onerror=alert(1)>',lat:51.05,lon:-103.95,time:null,levelM:null,dischargeM3s:null,previousTime:null,previousLevelM:null,sourceUrl:'https://wateroffice.ec.gc.ca'}]}/>);
   const railLines:L.Polyline[]=[];
   map.eachLayer(layer=>{if(layer instanceof L.Polyline&&layer.options.pane==='rail')railLines.push(layer);});
   expect(railLines).toHaveLength(2);
   expect(railLines.map(line=>(line.getLatLngs() as L.LatLng[]).length)).toEqual([2,2]);
-  fireEvent.keyDown(screen.getByRole('button',{name:/Wynyard.*calculated MP 10.0/i}),{key:'Enter',keyCode:13,charCode:13});
-  expect(onSelect.mock.calls[0][0].id).toBe('s1');
+  fireEvent.keyDown(screen.getByRole('button',{name:/Watrous.*observed 2.5.*2026-10-28T06:00:00Z/i}),{key:'Enter',keyCode:13,charCode:13});
+  expect(onObservation).toHaveBeenCalledWith('station');
+  expect(onSelect).not.toHaveBeenCalled();
   const gauge=screen.getByRole('button',{name:/Gauge 05MA011/});
   fireEvent.keyDown(gauge,{key:'Enter',keyCode:13,charCode:13});
   expect(onGauge).toHaveBeenCalledWith('05MA011');
@@ -183,4 +186,23 @@ it('exposes an independently selectable calculated mile reference and regional b
  render(<TrackMap {...props} network={withAsset} selection={{kind:'asset',id:'mile-10'}} assetVisibility={{gauges:false,basins:false,assets:false,snowpack:false,mileposts:true}} onAsset={onAsset} showMajorBasins onBasin={onBasin} majorBasins={{type:'FeatureCollection',features:[{type:'Feature',properties:{id:'regional-one',name:'Regional One'},geometry:{type:'Polygon',coordinates:[[[-104.2,50.9],[-103.6,50.9],[-103.6,51.4],[-104.2,50.9]]]}}]}}/>);
  fireEvent.click(screen.getByRole('button',{name:/Mile 10 · calculated/}));expect(onAsset).toHaveBeenCalledWith('mile-10');
  fireEvent.click(screen.getByRole('button',{name:/Regional One · regional/}));expect(onBasin).toHaveBeenCalledWith('regional-one');
+});
+
+// Terrain and arrows must remain independent of the forecast playback clock.
+it('loads published elevation only when enabled and requests stream arrows only at detailed zoom',()=>{
+ const {rerender}=render(<TrackMap {...props}/>);
+ expect(document.querySelectorAll('.leaflet-terrain-pane img,.leaflet-drainage-pane img')).toHaveLength(0);
+ rerender(<TrackMap {...props} showTerrain showFlow/>);
+ const image=document.querySelector<HTMLImageElement>('.leaflet-terrain-pane img');
+ expect(new URL(image!.src).searchParams.get('layers')).toBe('cdem.color-shaded-relief');
+ expect(document.querySelectorAll('.leaflet-drainage-pane img')).toHaveLength(0);
+ expect(screen.getByText(/Zoom in to level 12/)).toBeTruthy();
+ act(()=>{map.setZoom(12,{animate:false});});
+ const arrows=document.querySelector<HTMLImageElement>('.leaflet-drainage-pane img');
+ expect(new URL(arrows!.src).searchParams.get('layers')).toContain('flowdirection_1');
+ expect(new URL(arrows!.src).searchParams.has('time')).toBe(false);
+ fireEvent.error(arrows!);expect(screen.getByText(/Stream-direction imagery unavailable/)).toBeTruthy();
+ rerender(<TrackMap {...props}/>);
+ expect(document.querySelectorAll('.leaflet-terrain-pane img,.leaflet-drainage-pane img')).toHaveLength(0);
+ expect(()=>act(()=>{map.setZoom(10,{animate:false});})).not.toThrow();
 });
